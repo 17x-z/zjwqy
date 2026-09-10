@@ -1,0 +1,4857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=ai-legible&utm_source=comment&utm_medium=referral&utm_id=95f8160c-72f4-41e1-a1d7-cfbfa4db691a
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="hosting-provider" content="Netlify">
+<meta name="netlify-deploy" content="https://netlify.new/?utm_campaign=ai-legible&amp;utm_source=meta&amp;utm_medium=referral&amp;utm_id=95f8160c-72f4-41e1-a1d7-cfbfa4db691a">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lioran传讯</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        .phone {
+            width: 100vw;
+            height: 100vh;
+            background: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+        .phone.dark {
+            background: #1a1a1e;
+        }
+        .page {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #fff;
+            z-index: 1;
+            transition: background 0.3s;
+        }
+        .phone.dark .page {
+            background: #1a1a1e;
+        }
+        .page.active {
+            display: flex;
+            z-index: 2;
+        }
+        #chat-page {
+            background: #fff;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            position: relative;
+        }
+        .phone.dark #chat-page {
+            background-color: #1a1a1e;
+        }
+        #chat-page .bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.3s;
+        }
+        .phone.dark #chat-page .bg-overlay {
+            background: rgba(0, 0, 0, 0.45);
+        }
+        #chat-page > *:not(.bg-overlay) {
+            position: relative;
+            z-index: 1;
+        }
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 14px 10px 14px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 5;
+            min-height: 74px;
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        .phone.dark .top-bar {
+            background: rgba(28, 28, 32, 0.82);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 1px 14px rgba(0, 0, 0, 0.35);
+        }
+        .top-left .back-btn {
+            font-size: 22px;
+            cursor: pointer;
+            color: #007aff;
+            font-weight: 300;
+            padding: 4px 8px;
+        }
+        .phone.dark .top-left .back-btn {
+            color: #4da6ff;
+        }
+        .top-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .top-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+        }
+        .top-id-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 9px;
+            color: #666;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            margin-top: 2px;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .phone.dark .top-id-badge {
+            color: #bbb;
+            background: rgba(60, 60, 65, 0.5);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .top-signature {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #888;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            padding: 1px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            margin-top: 2px;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+        }
+        .phone.dark .top-signature {
+            color: #aaa;
+            background: rgba(60, 60, 65, 0.5);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .top-right .menu-icon-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .menu-icon-btn span {
+            display: block;
+            height: 2px;
+            background: #333;
+            border-radius: 2px;
+        }
+        .phone.dark .menu-icon-btn span {
+            background: #ddd;
+        }
+        .menu-icon-btn span:nth-child(2) {
+            width: 70%;
+        }
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            background: transparent;
+            min-height: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .chat-area::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        .chat-area .flex-box {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .chat-area .flex-box.justify-end {
+            justify-content: flex-end;
+        }
+        .chat-area .avatar-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-area .avatar-small {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #ccc;
+            background-size: cover;
+            background-position: center;
+            cursor: default;
+        }
+
+        /* ===== 气泡包裹层：气泡 + 时间 ===== */
+        .chat-area .bubble-wrap {
+            display: flex;
+            flex-direction: column;
+            max-width: 72%;
+            min-width: 0;
+        }
+        .chat-area .flex-box:not(.justify-end) .bubble-wrap {
+            align-items: flex-start;
+            margin-left: 8px;
+        }
+        .chat-area .flex-box.justify-end .bubble-wrap {
+            align-items: flex-end;
+            margin-right: 8px;
+        }
+        .chat-area .bubble-wrap .bubble {
+            max-width: 100%;
+        }
+        .chat-area .bubble-wrap .time-tag {
+            font-size: 8px;
+            line-height: 1;
+            color: #aaa;
+            margin-top: 3px;
+            padding: 0 2px;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+        .phone.dark .chat-area .bubble-wrap .time-tag {
+            color: #777;
+        }
+        /* 关闭聊天时间显示 */
+        .hide-time .time-tag {
+            display: none !important;
+        }
+
+        .chat-area .bubble {
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 13px;
+            max-width: 100%;
+            word-break: break-word;
+            line-height: 1.5;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .chat-area .bubble.their {
+            background: rgba(233, 233, 235, 0.7);
+            color: #1c1c1e;
+        }
+        .phone.dark .chat-area .bubble.their {
+            background: rgba(60, 60, 65, 0.7);
+            color: #eee;
+        }
+        .chat-area .bubble.my {
+            background: rgba(208, 208, 208, 0.7);
+            color: #1c1c1e;
+        }
+        .phone.dark .chat-area .bubble.my {
+            background: rgba(80, 80, 85, 0.7);
+            color: #eee;
+        }
+        .chat-area .bubble.emoji-bubble {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: none;
+            cursor: pointer;
+        }
+        .chat-area .bubble.emoji-bubble img {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .chat-area .bubble.image-message-bubble {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: none;
+            cursor: pointer;
+        }
+        .chat-area .bubble.image-message-bubble img {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 12px;
+            display: block;
+        }
+        .chat-area .bubble.choice-bubble {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: none;
+            cursor: pointer;
+        }
+        .chat-area .bubble .emoji-img {
+            max-width: 120px;
+            max-height: 100px;
+            border-radius: 8px;
+            display: block;
+        }
+        .choice-card {
+            background: rgba(233, 233, 235, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-width: 180px;
+            max-width: 260px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .phone.dark .choice-card {
+            background: rgba(60, 60, 65, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+        }
+        .choice-card.my-choice {
+            background: rgba(208, 208, 208, 0.7);
+        }
+        .phone.dark .choice-card.my-choice {
+            background: rgba(80, 80, 85, 0.7);
+        }
+        .choice-card .choice-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 4px;
+        }
+        .phone.dark .choice-card .choice-title {
+            color: #eee;
+        }
+        .choice-card .choice-question {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .phone.dark .choice-card .choice-question {
+            color: #ddd;
+        }
+        .choice-card .choice-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .choice-card .choice-opt {
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: #1c1c1e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: default;
+            transition: 0.15s;
+            border: 1px solid transparent;
+        }
+        .phone.dark .choice-card .choice-opt {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ddd;
+        }
+        .choice-card .choice-opt.selected {
+            background: #007aff;
+            color: #fff;
+            border-color: #007aff;
+        }
+        .choice-card .choice-opt .opt-label {
+            font-weight: 500;
+            margin-right: 6px;
+        }
+        .choice-card .choice-opt .opt-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ccc;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            margin-left: 6px;
+        }
+        .choice-card .choice-status {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 8px;
+            text-align: right;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            padding-top: 6px;
+        }
+        .phone.dark .choice-card .choice-status {
+            color: #aaa;
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+        .bottom-bar {
+            display: flex;
+            align-items: center;
+            padding: 8px 14px 18px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+            z-index: 5;
+            gap: 6px;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        .phone.dark .bottom-bar {
+            background: rgba(28, 28, 32, 0.82);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 -1px 14px rgba(0, 0, 0, 0.35);
+        }
+        .plus-btn {
+            font-size: 26px;
+            color: #888;
+            cursor: pointer;
+            user-select: none;
+            width: 32px;
+            text-align: center;
+            transition: transform 0.25s;
+            font-weight: 300;
+        }
+        .phone.dark .plus-btn {
+            color: #bbb;
+        }
+        .plus-btn.open {
+            transform: rotate(45deg);
+        }
+        .bottom-bar .input-field {
+            flex: 1;
+            height: 34px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 0 14px;
+            font-size: 13px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            color: #222;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .phone.dark .bottom-bar .input-field {
+            background: rgba(60, 60, 65, 0.6);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .bottom-bar .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #c0c0c0;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .phone.dark .bottom-bar .send-btn {
+            background: #555;
+        }
+        .bottom-bar .send-btn::after {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid #fff;
+            border-right: 2px solid #fff;
+            transform: rotate(45deg);
+            margin-left: -2px;
+        }
+        .plus-menu {
+            display: none;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 16px;
+            z-index: 4;
+            flex-shrink: 0;
+            max-height: 260px;
+            overflow-y: auto;
+            transition: background 0.3s, border-color 0.3s;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+        .phone.dark .plus-menu {
+            background: rgba(28, 28, 32, 0.85);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+        }
+        .plus-menu.open {
+            display: block;
+        }
+        .plus-menu .menu-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .plus-menu .menu-item {
+            width: calc((100% - 20px) / 3);
+            aspect-ratio: 1 / 1;
+            max-width: 110px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #333;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            gap: 4px;
+            font-weight: 500;
+            flex-shrink: 0;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+            user-select: none;
+        }
+        .phone.dark .plus-menu .menu-item {
+            background: rgba(58, 58, 64, 0.75);
+            color: #ddd;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .plus-menu .menu-item:active {
+            background: rgba(255, 255, 255, 0.85);
+            transform: scale(0.97);
+        }
+        .phone.dark .plus-menu .menu-item:active {
+            background: rgba(90, 90, 96, 0.9);
+        }
+        .plus-menu .menu-item .menu-icon {
+            display: none;
+        }
+        .plus-menu .menu-item .label {
+            font-size: 13px;
+            text-align: center;
+        }
+        .quote-bar-area {
+            display: none;
+            align-items: center;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+            z-index: 5;
+            gap: 8px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .phone.dark .quote-bar-area {
+            background: rgba(28, 28, 32, 0.85);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .quote-bar-area.show {
+            display: flex;
+        }
+        .quote-bar-area .quote-content-display {
+            flex: 1;
+            font-size: 12px;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .phone.dark .quote-bar-area .quote-content-display {
+            color: #bbb;
+        }
+        .quote-bar-area .quote-close-btn {
+            font-size: 16px;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .phone.dark .quote-bar-area .quote-close-btn {
+            color: #ccc;
+        }
+        .msg-actions {
+            position: absolute;
+            display: none;
+            gap: 4px;
+            z-index: 20;
+            pointer-events: auto;
+            flex-shrink: 0;
+        }
+        .msg-actions.show {
+            display: flex;
+        }
+        .msg-actions .action-chip {
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            color: #333;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            white-space: nowrap;
+            user-select: none;
+            transition: background 0.15s, color 0.15s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        }
+        .phone.dark .msg-actions .action-chip {
+            background: rgba(70, 70, 75, 0.8);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .msg-actions .action-chip:active {
+            background: rgba(255, 255, 255, 0.95);
+            transform: scale(0.95);
+        }
+        .phone.dark .msg-actions .action-chip:active {
+            background: rgba(90, 90, 95, 0.9);
+        }
+        .bubble .quote-preview {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 4px;
+            padding: 4px 6px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #666;
+            word-break: break-word;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .phone.dark .bubble .quote-preview {
+            background: rgba(255, 255, 255, 0.08);
+            color: #aaa;
+        }
+        .bubble .quote-preview .quote-bar-line {
+            width: 3px;
+            border-radius: 3px;
+            background: #888;
+            flex-shrink: 0;
+            min-height: 28px;
+            align-self: stretch;
+        }
+        .bubble .quote-preview .quote-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .revoked-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 0 20px;
+        }
+        .revoked-container .revoked-bubble {
+            font-style: italic;
+            color: #999;
+            cursor: default;
+            background: rgba(200, 200, 200, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            text-align: center;
+            display: inline-block;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .phone.dark .revoked-container .revoked-bubble {
+            color: #aaa;
+            background: rgba(80, 80, 85, 0.5);
+        }
+        .poke-message {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            background: transparent;
+            padding: 4px 0;
+            margin-bottom: 8px;
+            cursor: default;
+            width: 100%;
+        }
+        .phone.dark .poke-message {
+            color: #aaa;
+        }
+        .poke-message .poke-text {
+            display: inline-block;
+            background: rgba(200, 200, 200, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-style: italic;
+            color: #aaa;
+            font-size: 11px;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+        .phone.dark .poke-message .poke-text {
+            background: rgba(80, 80, 85, 0.5);
+            color: #ccc;
+        }
+        .poke-settings-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 10px 14px;
+            margin: 6px 0;
+            cursor: text;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .phone.dark .poke-settings-card {
+            background: rgba(60, 60, 65, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .poke-settings-card .poke-prefix {
+            font-size: 13px;
+            color: #555;
+            white-space: nowrap;
+        }
+        .phone.dark .poke-settings-card .poke-prefix {
+            color: #ccc;
+        }
+        .poke-settings-card input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: #222;
+            padding: 4px 6px;
+            cursor: text;
+        }
+        .phone.dark .poke-settings-card input {
+            color: #eee;
+        }
+        .poke-settings-card input::placeholder {
+            color: #aaa;
+        }
+
+        /* 设置页 */
+        #settings-page {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            z-index: 20;
+            padding: 0;
+        }
+        #settings-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            z-index: 0;
+        }
+        #settings-page .settings-body {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+        }
+        .settings-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .settings-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #007aff;
+            cursor: pointer;
+            font-weight: 300;
+            flex-shrink: 0;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+        }
+        .settings-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1c1e;
+            text-align: center;
+        }
+        .phone.dark .settings-title {
+            color: #eee;
+        }
+        .settings-avatar-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0 4px;
+        }
+        .settings-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        .glass-card, .setting-item {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+            transition: 0.2s;
+        }
+        .phone.dark .glass-card, .phone.dark .setting-item {
+            background: rgba(60, 60, 65, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+        }
+        .glass-card .label, .setting-item .left {
+            font-size: 14px;
+            color: #1c1c1e;
+            font-weight: 500;
+        }
+        .phone.dark .glass-card .label, .phone.dark .setting-item .left {
+            color: #eee;
+        }
+        .glass-card .value {
+            font-size: 13px;
+            color: #8e8e93;
+        }
+        .phone.dark .glass-card .value {
+            color: #aaa;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            background: #e5e5ea;
+            cursor: pointer;
+            position: relative;
+            transition: 0.25s;
+            flex-shrink: 0;
+        }
+        .phone.dark .toggle-switch {
+            background: #444;
+        }
+        .toggle-switch.on {
+            background: #34c759;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            transition: 0.25s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+        .toggle-switch.on::after {
+            left: 20px;
+        }
+        .no-arrow .arrow-right {
+            display: none !important;
+        }
+
+        /* 聊天设置弹窗 */
+        #settings-config-page {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+        #settings-config-page.active {
+            display: flex;
+        }
+        .config-modal {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 16px 20px 16px;
+        }
+        .phone.dark .config-modal {
+            background: rgba(40, 40, 45, 0.9);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+        }
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0 14px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .config-header .config-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1c1e;
+            text-align: center;
+        }
+        .phone.dark .config-header .config-title {
+            color: #eee;
+        }
+        .config-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 12px 0;
+            max-height: 60vh;
+        }
+        .config-section-title {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .phone.dark .config-section-title {
+            color: #aaa;
+        }
+        .config-item {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .phone.dark .config-item {
+            background: rgba(60, 60, 65, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+        }
+        .config-item .config-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .phone.dark .config-item .config-label {
+            color: #ccc;
+        }
+        .config-item .config-label i {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            background: #e5e5ea;
+            font-style: normal;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .phone.dark .config-item .config-label i {
+            color: #aaa;
+        }
+        .config-range-row {
+            display: flex;
+            align-items: center;
+            flex: 0 0 200px;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .config-range-row input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: #e5e5ea;
+            height: 4px;
+            border-radius: 4px;
+            outline: none;
+        }
+        .phone.dark .config-range-row input[type="range"] {
+            background: #444;
+        }
+        .config-range-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #888;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .phone.dark .config-range-row input[type="range"]::-webkit-slider-thumb {
+            background: #fff;
+            border-color: #333;
+        }
+        .config-range-val {
+            font-size: 14px;
+            color: #666;
+            flex: 0 0 64px;
+            text-align: right;
+        }
+        .phone.dark .config-range-val {
+            color: #aaa;
+        }
+        .config-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+        .config-footer .mbtn {
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.04);
+            color: #007aff;
+            border: none;
+            transition: 0.15s;
+        }
+        .phone.dark .config-footer .mbtn {
+            background: rgba(255, 255, 255, 0.06);
+            color: #4da6ff;
+        }
+        .config-footer .mbtn.cancel {
+            color: #666;
+        }
+        .phone.dark .config-footer .mbtn.cancel {
+            color: #aaa;
+        }
+        .config-footer .mbtn.confirm {
+            background: #007aff;
+            color: #fff;
+        }
+
+        #wordcard-page {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80%;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            z-index: 50;
+            padding: 0 16px 20px;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+        }
+        .phone.dark #wordcard-page {
+            background: rgba(30, 30, 35, 0.8);
+        }
+        #wordcard-page.active {
+            display: flex;
+        }
+        .wordcard-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 0 10px;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .wordcard-back {
+            font-size: 22px;
+            cursor: pointer;
+            color: #007aff;
+            font-weight: 300;
+            padding: 4px 8px;
+        }
+        .wordcard-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1c1e;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+        }
+        .phone.dark .wordcard-title {
+            color: #eee;
+        }
+        .wordcard-tools {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .wordcard-tools .tool-btn {
+            flex: 1;
+            min-width: 44px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 6px 0;
+            text-align: center;
+            font-size: 13px;
+            color: #1c1c1e;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: 0.15s;
+            font-weight: 500;
+        }
+        .phone.dark .wordcard-tools .tool-btn {
+            background: rgba(60, 60, 65, 0.6);
+            color: #ddd;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .wordcard-tools .tool-btn:active {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .wordcard-search-input {
+            width: 100%;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 10px;
+            display: none;
+            color: #222;
+        }
+        .phone.dark .wordcard-search-input {
+            background: rgba(60, 60, 65, 0.6);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .wordcard-search-input.show {
+            display: block;
+        }
+        .wordcard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+        .wordcard-item-row {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            justify-content: space-between;
+            transition: 0.15s;
+        }
+        .phone.dark .wordcard-item-row {
+            background: rgba(60, 60, 65, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .wordcard-item-row .text {
+            font-size: 14px;
+            color: #1c1c1e;
+            flex: 1;
+            cursor: default;
+        }
+        .phone.dark .wordcard-item-row .text {
+            color: #eee;
+        }
+        .wordcard-item-row .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .wordcard-item-row .actions .act {
+            font-size: 16px;
+            cursor: pointer;
+            color: #555;
+            user-select: none;
+            width: 24px;
+            text-align: center;
+        }
+        .phone.dark .wordcard-item-row .actions .act {
+            color: #bbb;
+        }
+        .wordcard-item-row .actions .act.hidden-icon {
+            opacity: 0.4;
+        }
+        .wordcard-item-row .actions .act.hidden-icon.active {
+            opacity: 1;
+            color: #007aff;
+        }
+        .wordcard-item-row.disabled {
+            opacity: 0.4;
+        }
+        .add-card-big {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 15px;
+            color: #1c1c1e;
+        }
+        .phone.dark .add-card-big {
+            background: rgba(60, 60, 65, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #eee;
+        }
+        .add-card-big .close-tag {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        .phone.dark .add-card-big .close-tag {
+            color: #aaa;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .emoji-modal-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            max-height: 70%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 95;
+            overflow: hidden;
+        }
+        .phone.dark .emoji-modal-overlay {
+            background: rgba(30, 30, 35, 0.8);
+        }
+        .emoji-modal-overlay.show {
+            display: flex;
+        }
+        .emoji-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+        .phone.dark .emoji-modal-header {
+            background: rgba(60, 60, 65, 0.6);
+            border-bottom-color: rgba(255, 255, 255, 0.08);
+        }
+        .emoji-modal-header .title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        .phone.dark .emoji-modal-header .title {
+            color: #eee;
+        }
+        .emoji-modal-header .close-btn, .emoji-action-btn {
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            padding: 4px 12px;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 16px;
+        }
+        .phone.dark .emoji-modal-header .close-btn, .phone.dark .emoji-action-btn {
+            color: #ccc;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .emoji-modal-header .close-btn:active, .emoji-action-btn:active {
+            background: rgba(0,0,0,0.1);
+        }
+        .emoji-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-content: flex-start;
+            background: transparent;
+        }
+        .emoji-modal-body .emoji-item {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: 0.15s;
+            position: relative;
+        }
+        .emoji-modal-body .emoji-item:active {
+            transform: scale(0.94);
+        }
+        .emoji-modal-body .add-emoji-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 2px dashed #aaa;
+            color: #666;
+        }
+        .phone.dark .emoji-modal-body .add-emoji-btn {
+            background: rgba(60, 60, 65, 0.8);
+            color: #ccc;
+            border-color: #555;
+        }
+        .emoji-item.selected {
+            border-color: #007aff;
+        }
+        .emoji-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background: #007aff;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            width: 90%;
+            max-width: 340px;
+            max-height: 85vh;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(24px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px 12px;
+            transition: background 0.3s;
+        }
+        .phone.dark .modal-box {
+            background: rgba(40, 40, 45, 0.92);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+        }
+        .modal-box .modal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1c1c1e;
+            text-align: center;
+            padding-bottom: 8px;
+        }
+        .phone.dark .modal-box .modal-title {
+            color: #eee;
+        }
+        .modal-box .modal-sub {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .phone.dark .modal-box .modal-sub {
+            color: #aaa;
+        }
+        .modal-box .modal-textarea {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            padding: 10px 14px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.04);
+            outline: none;
+            resize: vertical;
+            color: #1c1c1e;
+            font-family: inherit;
+        }
+        .phone.dark .modal-box .modal-textarea {
+            background: rgba(255, 255, 255, 0.06);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .modal-box .modal-textarea::placeholder {
+            color: #999;
+        }
+        .modal-box .modal-count {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            text-align: left;
+        }
+        .phone.dark .modal-box .modal-count {
+            color: #aaa;
+        }
+        .modal-box .modal-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+        .modal-box .modal-btns .mbtn {
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: #F3F4F6;
+            color: #6B7280;
+            border: none;
+            transition: 0.15s;
+        }
+        .phone.dark .modal-box .modal-btns .mbtn {
+            background: rgba(255, 255, 255, 0.06);
+            color: #aaa;
+        }
+        .modal-box .modal-btns .mbtn.cancel {
+            color: #6B7280;
+        }
+        .phone.dark .modal-box .modal-btns .mbtn.cancel {
+            color: #aaa;
+        }
+        .modal-box .modal-btns .mbtn.confirm {
+            background: #2563EB;
+            color: #fff;
+        }
+        .modal-box .modal-input-simple {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 22px;
+            padding: 0 16px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.04);
+            outline: none;
+            color: #1c1c1e;
+            margin: 6px 0;
+        }
+        .phone.dark .modal-box .modal-input-simple {
+            background: rgba(255, 255, 255, 0.06);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .choice-modal-input-group {
+            margin: 6px 0;
+        }
+        .choice-modal-input-group label {
+            font-size: 13px;
+            color: #4A4A4A;
+            display: block;
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+        .phone.dark .choice-modal-input-group label {
+            color: #ccc;
+        }
+        .choice-modal-input-group input {
+            width: 100%;
+            height: 36px;
+            border: 1px solid #E0E0E0;
+            border-radius: 20px;
+            padding: 0 14px;
+            font-size: 13px;
+            background: #F5F5F5;
+            outline: none;
+            color: #222;
+        }
+        .phone.dark .choice-modal-input-group input {
+            background: rgba(255, 255, 255, 0.06);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .choice-dynamic-options {
+            margin: 4px 0;
+        }
+        .choice-option-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .choice-option-row input {
+            flex: 1;
+            height: 36px;
+            border: 1px solid #E0E0E0;
+            border-radius: 20px;
+            padding: 0 14px;
+            font-size: 13px;
+            background: #F5F5F5;
+            outline: none;
+            color: #222;
+        }
+        .phone.dark .choice-option-row input {
+            background: rgba(255, 255, 255, 0.06);
+            color: #eee;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .choice-option-row .opt-label-tag {
+            font-size: 14px;
+            color: #6B7280;
+            min-width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .phone.dark .choice-option-row .opt-label-tag {
+            color: #aaa;
+        }
+        .choice-option-row .del-opt-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #FEE2E2;
+            color: #EF4444;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            line-height: 1;
+            padding: 0;
+        }
+        .choice-option-row .del-opt-btn:active {
+            opacity: 0.6;
+        }
+        .choice-add-opt-btn {
+            width: 100%;
+            height: 36px;
+            border: 1px dashed #3B82F6;
+            border-radius: 20px;
+            background: #EFF6FF;
+            color: #3B82F6;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+        .phone.dark .choice-add-opt-btn {
+            border-color: rgba(59, 130, 246, 0.4);
+            background: rgba(59, 130, 246, 0.08);
+            color: #60A5FA;
+        }
+        .choice-add-opt-btn:active {
+            opacity: 0.6;
+        }
+        .hidden-input {
+            display: none;
+        }
+        .group-color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+        .group-color-options .color-sq {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .group-color-options .color-sq.selected {
+            border-color: #007aff;
+        }
+        .color-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+            margin: 6px 0;
+        }
+        .color-preview-row .preview-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .color-picker-sliders {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 8px 0;
+        }
+        .color-picker-sliders label {
+            font-size: 13px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .phone.dark .color-picker-sliders label {
+            color: #ccc;
+        }
+        .color-picker-sliders input[type="range"] {
+            flex: 1;
+        }
+        .wordcard-select-mode {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            flex-wrap: wrap;
+        }
+        .wordcard-select-mode .select-all {
+            font-weight: 500;
+            cursor: pointer;
+            color: #007aff;
+        }
+        .wordcard-select-mode .selected-count {
+            color: #666;
+            font-size: 13px;
+        }
+        .phone.dark .wordcard-select-mode .selected-count {
+            color: #aaa;
+        }
+        .wordcard-select-mode .action-btns {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .wordcard-select-mode .action-btns .act-btn {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            border: none;
+            color: #555;
+        }
+        .phone.dark .wordcard-select-mode .action-btns .act-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: #bbb;
+        }
+        .wordcard-select-mode .action-btns .act-btn.danger {
+            color: #ff3b30;
+        }
+        .wordcard-select-mode .action-btns .act-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .wordcard-select-mode .action-btns .act-btn:not(:disabled):hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .download-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 6px 0;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+        }
+        .phone.dark .download-list {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .download-list .dl-item {
+            font-size: 13px;
+            color: #333;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .phone.dark .download-list .dl-item {
+            color: #ddd;
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+
+        /* ================= 气泡CSS设置弹窗 ================= */
+        #bubbleCssInput {
+            min-height: 110px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12.5px;
+            line-height: 1.5;
+            letter-spacing: 0.2px;
+        }
+        .bubble-preview-label {
+            font-size: 12px;
+            color: #888;
+            margin: 10px 0 4px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .phone.dark .bubble-preview-label {
+            color: #aaa;
+        }
+        #bubblePreviewArea {
+            display: block;
+            flex: none;
+            min-height: 0;
+            max-height: none;
+            overflow: visible;
+            padding: 14px 12px 6px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.045);
+            border: 1px dashed rgba(0, 0, 0, 0.08);
+        }
+        .phone.dark #bubblePreviewArea {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        #bubblePreviewArea .flex-box {
+            margin-bottom: 12px;
+        }
+        .bubble-tip {
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .phone.dark .bubble-tip {
+            color: #888;
+        }
+
+        /* ================= 头像与气泡弹窗 ================= */
+        #modalExtraContent {
+            max-height: 62vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+        #modalExtraContent::-webkit-scrollbar {
+            width: 4px;
+        }
+        #modalExtraContent::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+        .ab-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .ab-row .ab-label {
+            font-size: 13px;
+            color: #555;
+            width: 92px;
+            flex-shrink: 0;
+            font-weight: 500;
+            text-align: left;
+        }
+        .phone.dark .ab-row .ab-label {
+            color: #ccc;
+        }
+        .ab-row input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e5e5ea;
+            height: 4px;
+            border-radius: 4px;
+            outline: none;
+        }
+        .phone.dark .ab-row input[type="range"] {
+            background: #444;
+        }
+        .ab-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #888;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        .phone.dark .ab-row input[type="range"]::-webkit-slider-thumb {
+            background: #fff;
+            border-color: #333;
+        }
+        .ab-row .ab-val {
+            font-size: 12px;
+            color: #888;
+            width: 46px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .ab-btn-row {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 4px;
+            justify-content: center;
+        }
+        .ab-btn-row .ab-btn {
+            flex: 0 1 160px;
+            padding: 9px 0;
+            border-radius: 20px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.05);
+            color: #007aff;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .phone.dark .ab-btn-row .ab-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: #4da6ff;
+        }
+        .ab-btn-row .ab-btn:active {
+            transform: scale(0.97);
+            background: rgba(0, 0, 0, 0.1);
+        }
+        /* 头像框预览区域（始终可见） */
+        #abPreviewThemWrap,
+        #abPreviewMeWrap {
+            display: block;
+            flex: none;
+            min-height: 60px;
+            max-height: none;
+            overflow: visible;
+            padding: 18px 12px 6px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.045);
+            border: 1px dashed rgba(0, 0, 0, 0.08);
+        }
+        .phone.dark #abPreviewThemWrap,
+        .phone.dark #abPreviewMeWrap {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        #abPreviewThemWrap .flex-box,
+        #abPreviewMeWrap .flex-box {
+            margin-bottom: 6px;
+        }
+
+        /* ================= 清空代码行 ================= */
+        .clear-code-row {
+            display: flex;
+            justify-content: flex-end;
+            margin: 8px 0 4px;
+        }
+        .clear-code-row .ab-btn {
+            flex: 0 1 140px;
+            padding: 8px 0;
+            border-radius: 20px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.05);
+            color: #007aff;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .phone.dark .clear-code-row .ab-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: #4da6ff;
+        }
+        .clear-code-row .ab-btn:active {
+            transform: scale(0.97);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes dotBounce {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-6px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone" id="app">
+        <!-- 聊天页 -->
+        <div class="page active" id="chat-page">
+            <div class="bg-overlay"></div>
+            <div class="top-bar">
+                <div class="top-left">
+                    <span class="back-btn" id="chatBackBtn">‹</span>
+                </div>
+                <div class="top-center">
+                    <div class="top-avatar" id="chatTopAvatar" onclick="document.getElementById('avatarInputTheir').click()"></div>
+                    <div class="top-id-badge" id="idBadge">
+                        <span>ID：@</span><span id="displayedTheirId"></span>
+                    </div>
+                    <div class="top-signature">两颗缠绕的心 会走同一条路</div>
+                </div>
+                <div class="top-right">
+                    <div class="menu-icon-btn" id="menuToggle">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+            <div id="topBadgeWrap" style="display:none; padding:0 14px 4px; font-size:11px; color:#666; background:rgba(255,255,255,0.6); backdrop-filter:blur(4px); border-bottom:1px solid rgba(0,0,0,0.03); align-items:center; gap:8px; flex-shrink:0;">
+                <span id="topBadgeContent"></span>
+            </div>
+            <div class="chat-area" id="chatArea"></div>
+            <div class="quote-bar-area" id="quoteBarArea">
+                <span class="quote-content-display" id="quoteContentDisplay"></span>
+                <span class="quote-close-btn" id="quoteCloseBtn">✕</span>
+            </div>
+            <div class="bottom-bar">
+                <div class="plus-btn" id="plusBtn">+</div>
+                <input class="input-field" id="chatInput" placeholder="메시지 입력..." />
+                <button class="send-btn" id="sendBtn"></button>
+            </div>
+            <div class="plus-menu" id="plusMenu">
+                <div class="menu-grid">
+                    <div class="menu-item" id="menuAlbum"><span class="label">相册</span></div>
+                    <div class="menu-item" id="menuEmoji"><span class="label">表情包</span></div>
+                    <div class="menu-item" id="menuWordcard"><span class="label">字卡</span></div>
+                    <div class="menu-item" id="menuChoice"><span class="label">抉择</span></div>
+                    <div class="menu-item" id="menuTheme"><span class="label">主题</span></div>
+                    <div class="menu-item" id="menuPoke"><span class="label">拍一拍</span></div>
+                    <div class="menu-item" id="menuBubble"><span class="label">气泡美化</span></div>
+                    <div class="menu-item" id="menuAvatarBubble"><span class="label">头像气泡</span></div>
+                    <div class="menu-item" id="menuSettings"><span class="label">设置</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户设置页 -->
+        <div class="page" id="settings-page">
+            <div class="settings-top-bar">
+                <span class="settings-back" id="settingsBack">‹</span>
+                <span class="settings-title">设置</span>
+            </div>
+            <div class="settings-body">
+                <div class="settings-avatar-wrap">
+                    <div class="settings-avatar" id="settingsAvatar" onclick="document.getElementById('avatarInputSettings').click()"></div>
+                </div>
+                <div class="glass-card" id="settingsNameCard">
+                    <span class="label">我</span>
+                    <span class="value" id="settingsNameVal">用户</span>
+                </div>
+                <div class="glass-card" id="settingsIdCard">
+                    <span class="label">ID：@</span>
+                    <span class="value" id="settingsIdVal"></span>
+                </div>
+                <div class="setting-item">
+                    <div class="left">置顶聊天</div>
+                    <div class="toggle-switch" id="toggleTop"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="left">消息免打扰</div>
+                    <div class="toggle-switch" id="toggleMute"></div>
+                </div>
+                <div class="setting-item" id="settingBg">
+                    <div class="left">设置聊天背景</div>
+                    <span class="arrow-right">›</span>
+                </div>
+                <div class="setting-item no-arrow" id="settingClear">
+                    <div class="left">删除聊天记录</div>
+                    <span class="arrow-right" style="display:none;">›</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天设置弹窗 -->
+        <div id="settings-config-page">
+            <div class="config-modal">
+                <div class="config-header">
+                    <span class="config-title">聊天设置</span>
+                </div>
+                <div class="config-body">
+                    <div>
+                        <div class="config-section-title">回复速度（对方输入动画时长）</div>
+                        <div class="config-item">
+                            <div class="config-label"><i>⇆</i>最短等待</div>
+                            <div class="config-range-row">
+                                <input type="range" id="minReplyDelayRange" min="1" max="30" value="1">
+                                <span class="config-range-val" id="minReplyDelayVal">1s</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <div class="config-label"><i>⇆</i>最长等待</div>
+                            <div class="config-range-row">
+                                <input type="range" id="maxReplyDelayRange" min="1" max="120" value="1">
+                                <span class="config-range-val" id="maxReplyDelayVal">1s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="config-section-title">主动发送</div>
+                        <div class="config-item">
+                            <div class="config-label"><i>➤</i>主动发消息给我</div>
+                            <div class="toggle-switch" id="toggleActiveSend"></div>
+                        </div>
+                        <div class="config-item">
+                            <div class="config-label"><i>⏱</i>间隔</div>
+                            <div class="config-range-row">
+                                <input type="range" id="activeSendIntervalRange" min="1" max="120" value="1">
+                                <span class="config-range-val" id="activeSendIntervalVal">1分钟</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="config-section-title">消息节奏</div>
+                        <div class="config-item">
+                            <div class="config-label"><i>☺</i>表情混入消息</div>
+                            <div class="toggle-switch" id="toggleMixEmoji"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="config-section-title">字卡消息（同时决定对方单次回复的总条数上限）</div>
+                        <div class="config-item">
+                            <div class="config-label"><i>▤</i>最短条数</div>
+                            <div class="config-range-row">
+                                <input type="range" id="minCardCountRange" min="1" max="5" value="1">
+                                <span class="config-range-val" id="minCardCountVal">1条</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <div class="config-label"><i>▤</i>最长条数</div>
+                            <div class="config-range-row">
+                                <input type="range" id="maxCardCountRange" min="1" max="20" value="1">
+                                <span class="config-range-val" id="maxCardCountVal">1条</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="config-section-title">显示与后台</div>
+                        <div class="config-item">
+                            <div class="config-label"><i>◷</i>显示聊天时间</div>
+                            <div class="toggle-switch" id="toggleShowTime"></div>
+                        </div>
+                        <div class="config-item">
+                            <div class="config-label"><i>♫</i>后台保活</div>
+                            <div class="toggle-switch" id="toggleKeepAlive"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-footer">
+                    <button class="mbtn cancel" id="settingsConfigClose">关闭</button>
+                    <button class="mbtn confirm" id="settingsConfigConfirm">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 字卡弹窗 -->
+        <div class="page" id="wordcard-page">
+            <div class="wordcard-header">
+                <span class="wordcard-back" id="wordcardBack">‹</span>
+                <span class="wordcard-title">字卡</span>
+            </div>
+            <div class="wordcard-tools" id="wordcardTools">
+                <div class="tool-btn" data-action="search">搜</div>
+                <div class="tool-btn" data-action="split">分</div>
+                <div class="tool-btn" data-action="check">查</div>
+                <div class="tool-btn" data-action="select">选</div>
+                <div class="tool-btn" data-action="upload">上传</div>
+                <div class="tool-btn" data-action="download">下载</div>
+            </div>
+            <input class="wordcard-search-input" id="wordcardSearch" placeholder="搜索字卡..." />
+            <div class="wordcard-list" id="wordcardList"></div>
+            <hr style="margin: 8px 0; border: 0.5px solid rgba(0,0,0,0.05);" />
+            <div id="selectModeArea" style="display:none; margin: 6px 0 10px;">
+                <div class="wordcard-select-mode">
+                    <span class="select-all" id="selectAllBtn">全选</span>
+                    <span class="selected-count" id="selectedCount">已选 0 条</span>
+                    <div class="action-btns">
+                        <button class="act-btn" id="batchGroupBtn" disabled>分组</button>
+                        <button class="act-btn" id="batchHideBtn" disabled>屏蔽</button>
+                        <button class="act-btn danger" id="batchDeleteBtn" disabled>删除</button>
+                    </div>
+                </div>
+            </div>
+            <div class="add-card-big" id="addCardBig">
+                <span>添加字卡</span>
+                <span class="close-tag">关闭</span>
+            </div>
+        </div>
+
+        <!-- 隐藏 inputs -->
+        <input type="file" id="avatarInputTheir" accept="image/*" class="hidden-input">
+        <input type="file" id="avatarInputSettings" accept="image/*" class="hidden-input">
+        <input type="file" id="bgInput" accept="image/*" class="hidden-input">
+        <input type="file" id="emojiAddInput" accept="image/*" multiple class="hidden-input">
+        <input type="file" id="albumSendInput" accept="image/*" class="hidden-input">
+        <input type="file" id="uploadFileInput" accept="*/*" class="hidden-input">
+
+        <!-- 通用弹窗 -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-box" id="modalBox">
+                <div class="modal-title" id="modalTitle">标题</div>
+                <div class="modal-sub" id="modalSub"></div>
+                <input class="modal-input-simple" id="modalInputSimple" style="display:none;" placeholder="请输入..." />
+                <textarea class="modal-textarea" id="modalTextarea" style="display:none;" placeholder="在此粘贴内容，每行一条。"></textarea>
+                <div class="modal-count" id="modalCount" style="display:none;">共 0 条</div>
+                <div id="modalExtraContent"></div>
+                <div class="modal-btns">
+                    <button class="mbtn cancel" id="modalCancel">取消</button>
+                    <button class="mbtn confirm" id="modalConfirm">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表情包弹窗 -->
+        <div class="emoji-modal-overlay" id="emojiModal">
+            <div class="emoji-modal-header">
+                <span class="title">表情包</span>
+                <div style="display:flex; gap:8px;">
+                    <span class="emoji-action-btn" id="emojiDeleteBtn">删除</span>
+                    <span class="emoji-action-btn" id="emojiCancelDeleteBtn" style="display:none;">取消删除</span>
+                    <span class="emoji-action-btn" id="emojiConfirmDeleteBtn" style="display:none;">确认删除</span>
+                    <span class="close-btn" id="emojiModalClose">✕ 关闭</span>
+                </div>
+            </div>
+            <div class="emoji-modal-body" id="emojiModalBody"></div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    // ============================================================
+    //  全局状态
+    // ============================================================
+    const state = {
+        myName: '用户',
+        myId: '',
+        myAvatar: '',
+        theirName: '对方',
+        theirId: '',
+        theirAvatar: '',
+        topChat: false,
+        muteChat: false,
+        bgImage: '',
+        wordcards: [],
+        wordcardHidden: [],
+        emojiList: [],
+        chatHistory: [],
+        groups: [],
+        selectMode: false,
+        selectedIndices: [],
+        hasUserSentMessage: false,
+        autoReplyTimer: null,
+        typingTimer: null,
+        quoteMessage: null,
+        darkMode: false,
+        messageIdCounter: 0,
+        pokeThemText: '',
+        pokeMeText: '',
+        minReplyDelay: 1,
+        maxReplyDelay: 1,
+        activeSend: false,
+        activeSendInterval: 1,
+        mixEmoji: true,
+        minCardCount: 1,
+        maxCardCount: 1,
+        emojiDeleting: false,
+        emojiSelected: [],
+        sendSeqTimer: null,
+        bubbleCss: '',
+        // 头像与气泡
+        myAvatarSize: 28,
+        theirAvatarSize: 28,
+        bubbleFontSize: 13,
+        avatarFrameCssThem: '',
+        avatarFrameCssMe: '',
+        // 新增
+        showChatTime: true,
+        keepAlive: false
+    };
+
+    // ============================================================
+    //  IndexedDB 存储功能
+    // ============================================================
+    const DB_NAME = 'ChatAppDB';
+    const DB_VERSION = 2;
+    const STORE_NAME = 'chatData';
+    const DATA_KEY = 'appState';
+    let db = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = function(event) {
+                console.error('数据库打开失败:', event.target.error);
+                reject(event.target.error);
+            };
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                console.log('数据库打开成功:', DB_NAME, '版本:', DB_VERSION);
+                resolve(db);
+            };
+            request.onupgradeneeded = function(event) {
+                const database = event.target.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    console.log('创建存储对象:', STORE_NAME);
+                }
+            };
+        });
+    }
+
+    async function saveState() {
+        if (!db) return;
+        try {
+            const dataToSave = {
+                id: DATA_KEY,
+                myName: state.myName,
+                myId: state.myId,
+                myAvatar: state.myAvatar,
+                theirName: state.theirName,
+                theirId: state.theirId,
+                theirAvatar: state.theirAvatar,
+                topChat: state.topChat,
+                muteChat: state.muteChat,
+                bgImage: state.bgImage,
+                wordcards: state.wordcards,
+                wordcardHidden: state.wordcardHidden,
+                emojiList: state.emojiList,
+                chatHistory: state.chatHistory,
+                groups: state.groups,
+                darkMode: state.darkMode,
+                messageIdCounter: state.messageIdCounter,
+                pokeThemText: state.pokeThemText,
+                pokeMeText: state.pokeMeText,
+                minReplyDelay: state.minReplyDelay,
+                maxReplyDelay: state.maxReplyDelay,
+                activeSend: state.activeSend,
+                activeSendInterval: state.activeSendInterval,
+                mixEmoji: state.mixEmoji,
+                minCardCount: state.minCardCount,
+                maxCardCount: state.maxCardCount,
+                bubbleCss: state.bubbleCss,
+                myAvatarSize: state.myAvatarSize,
+                theirAvatarSize: state.theirAvatarSize,
+                bubbleFontSize: state.bubbleFontSize,
+                avatarFrameCssThem: state.avatarFrameCssThem,
+                avatarFrameCssMe: state.avatarFrameCssMe,
+                avatarFrameCss: state.avatarFrameCssMe || state.avatarFrameCssThem || '',
+                showChatTime: state.showChatTime,
+                keepAlive: state.keepAlive,
+                timestamp: Date.now()
+            };
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            store.put(dataToSave);
+            transaction.oncomplete = function() {
+                console.log('数据已保存');
+            };
+            transaction.onerror = function(event) {
+                console.error('保存失败:', event.target.error);
+            };
+        } catch (e) {
+            console.error('保存异常:', e);
+        }
+    }
+
+    async function loadState() {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject('数据库未初始化');
+                return;
+            }
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(DATA_KEY);
+            request.onsuccess = function(event) {
+                const savedData = event.target.result;
+                if (savedData) {
+                    state.myName = savedData.myName || '用户';
+                    state.myId = savedData.myId || '';
+                    state.myAvatar = savedData.myAvatar || '';
+                    state.theirName = savedData.theirName || '对方';
+                    state.theirId = savedData.theirId || '';
+                    state.theirAvatar = savedData.theirAvatar || '';
+                    state.topChat = savedData.topChat || false;
+                    state.muteChat = savedData.muteChat || false;
+                    state.bgImage = savedData.bgImage || '';
+                    state.wordcards = savedData.wordcards || [];
+                    state.wordcardHidden = savedData.wordcardHidden || [];
+                    state.emojiList = savedData.emojiList || [];
+                    state.chatHistory = savedData.chatHistory || [];
+                    state.groups = savedData.groups || [];
+                    state.darkMode = savedData.darkMode || false;
+                    state.messageIdCounter = savedData.messageIdCounter || 0;
+                    state.pokeThemText = savedData.pokeThemText || '';
+                    state.pokeMeText = savedData.pokeMeText || '';
+                    state.minReplyDelay = savedData.minReplyDelay || 1;
+                    state.maxReplyDelay = savedData.maxReplyDelay || 1;
+                    state.activeSend = savedData.activeSend || false;
+                    state.activeSendInterval = savedData.activeSendInterval || 1;
+                    state.mixEmoji = savedData.mixEmoji !== undefined ? savedData.mixEmoji : true;
+                    state.minCardCount = savedData.minCardCount || 1;
+                    state.maxCardCount = savedData.maxCardCount || 1;
+                    state.bubbleCss = savedData.bubbleCss || '';
+                    state.myAvatarSize = savedData.myAvatarSize || 28;
+                    state.theirAvatarSize = savedData.theirAvatarSize || 28;
+                    state.bubbleFontSize = savedData.bubbleFontSize || 13;
+                    state.avatarFrameCssThem = savedData.avatarFrameCssThem || savedData.avatarFrameCss || '';
+                    state.avatarFrameCssMe = savedData.avatarFrameCssMe || savedData.avatarFrameCss || '';
+                    state.showChatTime = savedData.showChatTime !== undefined ? savedData.showChatTime : true;
+                    state.keepAlive = savedData.keepAlive || false;
+                    state.hasUserSentMessage = state.chatHistory.some(msg => msg.from === 'me' && !msg.revoked);
+                    console.log('数据已加载');
+                    resolve(true);
+                } else {
+                    console.log('没有保存的数据');
+                    resolve(false);
+                }
+            };
+            request.onerror = function(event) {
+                console.error('加载失败:', event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // ============================================================
+    //  DOM 引用
+    // ============================================================
+    const $ = id => document.getElementById(id);
+    const chatPage = $('chat-page');
+    const settingsPage = $('settings-page');
+    const settingsConfigPage = $('settings-config-page');
+    const wordcardPage = $('wordcard-page');
+    const chatArea = $('chatArea');
+    const chatInput = $('chatInput');
+    const sendBtn = $('sendBtn');
+    const plusBtn = $('plusBtn');
+    const plusMenu = $('plusMenu');
+    const modalOverlay = $('modalOverlay');
+    const modalTitle = $('modalTitle');
+    const modalSub = $('modalSub');
+    const modalInputSimple = $('modalInputSimple');
+    const modalTextarea = $('modalTextarea');
+    const modalCount = $('modalCount');
+    const modalConfirm = $('modalConfirm');
+    const modalCancel = $('modalCancel');
+    const modalExtra = $('modalExtraContent');
+    const displayedTheirId = $('displayedTheirId');
+    const chatTopAvatar = $('chatTopAvatar');
+    const settingsAvatar = $('settingsAvatar');
+    const settingsNameVal = $('settingsNameVal');
+    const settingsIdVal = $('settingsIdVal');
+    const toggleTop = $('toggleTop');
+    const toggleMute = $('toggleMute');
+    const topBadgeWrap = $('topBadgeWrap');
+    const topBadgeContent = $('topBadgeContent');
+    const wordcardList = $('wordcardList');
+    const wordcardSearch = $('wordcardSearch');
+    const selectModeArea = $('selectModeArea');
+    const selectAllBtn = $('selectAllBtn');
+    const selectedCount = $('selectedCount');
+    const batchGroupBtn = $('batchGroupBtn');
+    const batchHideBtn = $('batchHideBtn');
+    const batchDeleteBtn = $('batchDeleteBtn');
+    const addCardBig = $('addCardBig');
+    const emojiModal = $('emojiModal');
+    const emojiModalBody = $('emojiModalBody');
+    const emojiModalClose = $('emojiModalClose');
+    const quoteBarArea = $('quoteBarArea');
+    const quoteContentDisplay = $('quoteContentDisplay');
+    const quoteCloseBtn = $('quoteCloseBtn');
+
+    const emojiDeleteBtn = $('emojiDeleteBtn');
+    const emojiCancelDeleteBtn = $('emojiCancelDeleteBtn');
+    const emojiConfirmDeleteBtn = $('emojiConfirmDeleteBtn');
+
+    // ============================================================
+    //  工具函数
+    // ============================================================
+    function getTime() {
+        const d = new Date();
+        return String(d.getHours()).padStart(2, '0') + ':' +
+            String(d.getMinutes()).padStart(2, '0') + ':' +
+            String(d.getSeconds()).padStart(2, '0');
+    }
+
+    function generateMessageId() {
+        state.messageIdCounter++;
+        return 'msg_' + Date.now() + '_' + state.messageIdCounter;
+    }
+
+    function setAvatar(el, url) {
+        if (url) {
+            el.style.background = `url(${url}) center/cover`;
+            el.style.backgroundColor = 'transparent';
+        } else {
+            el.style.background = '#ccc';
+            el.style.backgroundColor = '#ccc';
+        }
+    }
+
+    function getMsgPreview(msg) {
+        if (!msg) return '';
+        if (msg.revoked) return '消息已撤回';
+        if (msg.type === 'text') return msg.content;
+        if (msg.type === 'image') return '[图片]';
+        if (msg.type === 'emoji') return '[表情包]';
+        if (msg.type === 'wordcard') return msg.content;
+        if (msg.type === 'choice') return '[抉择] ' + (msg.data && msg.data.question || '');
+        if (msg.type === 'poke') return msg.content;
+        return '';
+    }
+
+    function hideAllMsgActions() {
+        document.querySelectorAll('.msg-actions').forEach(el => el.classList.remove('show'));
+        state.activeActionsId = null;
+    }
+
+    // ============================================================
+    //  聊天时间显示开关
+    // ============================================================
+    function applyTimeVisibility() {
+        const app = $('app');
+        if (state.showChatTime) {
+            app.classList.remove('hide-time');
+        } else {
+            app.classList.add('hide-time');
+        }
+    }
+
+    // ============================================================
+    //  后台保活（静音音频）
+    // ============================================================
+    let keepAliveCtx = null;
+    let keepAliveOsc = null;
+    let keepAliveGain = null;
+
+    function startKeepAlive() {
+        if (keepAliveOsc) return;
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            if (!keepAliveCtx) keepAliveCtx = new AC();
+            if (keepAliveCtx.state === 'suspended') keepAliveCtx.resume();
+            keepAliveGain = keepAliveCtx.createGain();
+            keepAliveGain.gain.value = 0.0001;
+            keepAliveOsc = keepAliveCtx.createOscillator();
+            keepAliveOsc.type = 'sine';
+            keepAliveOsc.frequency.value = 20;
+            keepAliveOsc.connect(keepAliveGain);
+            keepAliveGain.connect(keepAliveCtx.destination);
+            keepAliveOsc.start();
+            console.log('后台保活已开启');
+        } catch (e) {
+            console.warn('后台保活启动失败:', e);
+        }
+    }
+
+    function stopKeepAlive() {
+        try {
+            if (keepAliveOsc) {
+                keepAliveOsc.stop();
+                keepAliveOsc.disconnect();
+                keepAliveOsc = null;
+            }
+            if (keepAliveGain) {
+                keepAliveGain.disconnect();
+                keepAliveGain = null;
+            }
+            console.log('后台保活已关闭');
+        } catch (e) {}
+    }
+
+    function resumeAudioIfNeeded() {
+        try {
+            if (keepAliveCtx && keepAliveCtx.state === 'suspended') {
+                keepAliveCtx.resume();
+            }
+        } catch (e) {}
+    }
+
+    function requestNotifyPermission() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default') {
+            try { Notification.requestPermission(); } catch (e) {}
+        }
+    }
+
+    function sendMessageNotification(msg) {
+        if (!state.keepAlive) return;
+        if (!document.hidden) return;
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+        try {
+            let body = '';
+            if (msg.type === 'text') body = msg.content;
+            else if (msg.type === 'wordcard') body = msg.content;
+            else if (msg.type === 'emoji') body = '[表情包]';
+            else if (msg.type === 'image') body = '[图片]';
+            else if (msg.type === 'poke') body = msg.content;
+            else if (msg.type === 'choice') body = '[抉择]';
+            else body = '新消息';
+            const n = new Notification(state.theirName || '对方', {
+                body: body,
+                icon: state.theirAvatar || undefined,
+                tag: 'chat-msg'
+            });
+            setTimeout(() => { try { n.close(); } catch (e) {} }, 5000);
+        } catch (e) {}
+    }
+
+    // ============================================================
+    //  「清空代码」按钮
+    // ============================================================
+    function createClearCodeBtn(onClear) {
+        const row = document.createElement('div');
+        row.className = 'clear-code-row';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ab-btn';
+        btn.textContent = '清空代码';
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            onClear();
+        });
+        row.appendChild(btn);
+        return row;
+    }
+
+    // ============================================================
+    //  气泡自定义 CSS 应用
+    // ============================================================
+    function getBubbleStyleEl() {
+        let styleEl = document.getElementById('customBubbleStyle');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'customBubbleStyle';
+            document.head.appendChild(styleEl);
+        }
+        return styleEl;
+    }
+
+    function applyBubbleStyle(css) {
+        const styleEl = getBubbleStyleEl();
+        const trimmed = (css || '').trim();
+        if (!trimmed) {
+            styleEl.textContent = '';
+            return;
+        }
+        let code = trimmed;
+        if (!code.includes('{')) {
+            code = `.bubble { ${code} }`;
+        }
+        const resetRule = `.chat-area .bubble.emoji-bubble, .chat-area .bubble.image-message-bubble, .chat-area .bubble.choice-bubble { background: transparent !important; padding: 0 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border-radius: 0 !important; border: none !important; }`;
+        styleEl.textContent = code + '\n' + resetRule;
+
+        try {
+            const sheet = styleEl.sheet;
+            if (!sheet) return;
+            const rules = Array.from(sheet.cssRules);
+            rules.forEach(rule => {
+                if (!rule.selectorText || !rule.style) return;
+                if (rule.selectorText.indexOf('emoji-bubble') > -1) return;
+                if (rule.selectorText.indexOf('.bubble') === -1) return;
+                const style = rule.style;
+                const props = [];
+                for (let i = 0; i < style.length; i++) {
+                    props.push(style[i]);
+                }
+                props.forEach(p => {
+                    const v = style.getPropertyValue(p);
+                    style.setProperty(p, v, 'important');
+                });
+            });
+        } catch (e) {
+            console.warn('气泡样式优先级提升失败:', e);
+        }
+    }
+
+    // ============================================================
+    //  头像 / 气泡尺寸应用
+    // ============================================================
+    function applySizeStyle() {
+        let styleEl = document.getElementById('customSizeStyle');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'customSizeStyle';
+            document.head.appendChild(styleEl);
+        }
+        const myS = state.myAvatarSize || 28;
+        const theirS = state.theirAvatarSize || 28;
+        const bf = state.bubbleFontSize || 13;
+        styleEl.textContent =
+            `.chat-area .flex-box.justify-end .avatar-small { width:${myS}px !important; height:${myS}px !important; }\n` +
+            `.chat-area .flex-box:not(.justify-end) .avatar-small { width:${theirS}px !important; height:${theirS}px !important; }\n` +
+            `.chat-area .bubble { font-size:${bf}px !important; }`;
+    }
+
+    // ============================================================
+    //  头像框自定义 CSS 应用（对方 + 用户 分开）
+    // ============================================================
+    function applyAvatarFrameStyle(cssThem, cssMe) {
+        cssThem = cssThem || '';
+        cssMe = cssMe || '';
+
+        let styleEl = document.getElementById('customAvatarFrameStyle');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'customAvatarFrameStyle';
+            document.head.appendChild(styleEl);
+        }
+
+        const themScope = '.chat-area .flex-box:not(.justify-end) .avatar-small';
+        const meScope = '.chat-area .flex-box.justify-end .avatar-small';
+
+        function buildCode(css, scope) {
+            const trimmed = (css || '').trim();
+            if (!trimmed) return '';
+            let code = trimmed;
+            if (!code.includes('{')) {
+                return `${scope} { ${code} }`;
+            }
+            code = code.replace(/\.avatar-small/g, scope);
+            return code;
+        }
+
+        const themCode = buildCode(cssThem, themScope);
+        const meCode = buildCode(cssMe, meScope);
+        styleEl.textContent = themCode + '\n' + meCode;
+
+        try {
+            const sheet = styleEl.sheet;
+            if (!sheet) return;
+            Array.from(sheet.cssRules).forEach(rule => {
+                if (!rule.selectorText || !rule.style) return;
+                if (rule.selectorText.indexOf('avatar-small') === -1) return;
+                const props = [];
+                for (let i = 0; i < rule.style.length; i++) {
+                    props.push(rule.style[i]);
+                }
+                props.forEach(p => {
+                    rule.style.setProperty(p, rule.style.getPropertyValue(p), 'important');
+                });
+            });
+        } catch (e) {
+            console.warn('头像框样式优先级提升失败:', e);
+        }
+    }
+
+    // ============================================================
+    //  气泡美化 CSS 弹窗
+    // ============================================================
+    let bubbleCssBackup = '';
+
+    function showBubbleCssModal() {
+        bubbleCssBackup = state.bubbleCss || '';
+
+        modalTitle.textContent = '对话气泡css代码';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalCancel.style.display = 'block';
+        modalConfirm.textContent = '确认';
+        modalCancel.textContent = '取消';
+
+        modalExtra.innerHTML = `
+            <textarea class="modal-textarea" id="bubbleCssInput" spellcheck="false"
+                placeholder="在此输入气泡的 CSS 代码，例如：&#10;background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);&#10;border-radius: 18px;&#10;color: #fff;&#10;box-shadow: 0 4px 12px rgba(255,154,158,0.5);"></textarea>
+            <div id="bubbleClearSlot"></div>
+            <div class="bubble-preview-label">实时预览</div>
+            <div class="chat-area" id="bubblePreviewArea">
+                <div class="flex-box">
+                    <div class="bubble their">对方消息示例 ✨</div>
+                </div>
+                <div class="flex-box justify-end">
+                    <div class="bubble my">我的消息示例 💬</div>
+                </div>
+            </div>
+            <div class="bubble-tip">提示：可直接写 CSS 声明（如 background / border-radius），也可写完整规则（如 .bubble { ... }）。</div>
+        `;
+
+        const ta = document.getElementById('bubbleCssInput');
+        ta.value = state.bubbleCss || '';
+
+        document.getElementById('bubbleClearSlot').appendChild(
+            createClearCodeBtn(function() {
+                ta.value = '';
+                applyBubbleStyle('');
+                showToast('代码已清空');
+            })
+        );
+
+        ta.addEventListener('input', function() {
+            applyBubbleStyle(this.value);
+        });
+
+        modalConfirm.onclick = function() {
+            state.bubbleCss = ta.value;
+            applyBubbleStyle(state.bubbleCss);
+            saveState();
+            closeModal();
+            showToast('气泡样式已应用');
+        };
+
+        modalCancel.onclick = function() {
+            applyBubbleStyle(bubbleCssBackup);
+            closeModal();
+        };
+
+        modalOverlay.classList.add('show');
+
+        applyBubbleStyle(state.bubbleCss || '');
+    }
+
+    // ============================================================
+    //  头像与气泡 弹窗
+    // ============================================================
+    function showAvatarBubbleModal() {
+        const DEF = { myAvatar: 28, theirAvatar: 28, bubble: 13 };
+
+        const backup = {
+            myAvatarSize: state.myAvatarSize,
+            theirAvatarSize: state.theirAvatarSize,
+            bubbleFontSize: state.bubbleFontSize,
+            avatarFrameCssThem: state.avatarFrameCssThem,
+            avatarFrameCssMe: state.avatarFrameCssMe
+        };
+
+        modalTitle.textContent = '头像与气泡';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalCancel.style.display = 'block';
+        modalCancel.textContent = '取消';
+        modalConfirm.textContent = '确认';
+
+        modalExtra.innerHTML = `
+            <div class="ab-row">
+                <span class="ab-label">我的头像大小</span>
+                <input type="range" id="abMyAvatarRange" min="16" max="80" value="${state.myAvatarSize}">
+                <span class="ab-val" id="abMyAvatarVal">${state.myAvatarSize}px</span>
+            </div>
+            <div class="ab-row">
+                <span class="ab-label">对方头像大小</span>
+                <input type="range" id="abTheirAvatarRange" min="16" max="80" value="${state.theirAvatarSize}">
+                <span class="ab-val" id="abTheirAvatarVal">${state.theirAvatarSize}px</span>
+            </div>
+            <div class="ab-row">
+                <span class="ab-label">气泡大小</span>
+                <input type="range" id="abBubbleRange" min="10" max="24" value="${state.bubbleFontSize}">
+                <span class="ab-val" id="abBubbleVal">${state.bubbleFontSize}px</span>
+            </div>
+            <div class="ab-btn-row">
+                <button class="ab-btn" id="abResetBtn">恢复默认</button>
+            </div>
+
+            <div class="bubble-preview-label">对方头像框 CSS 代码</div>
+            <textarea class="modal-textarea" id="avatarFrameCssThemInput" spellcheck="false"
+                placeholder="在此输入对方头像框的 CSS 代码，例如：&#10;border: 2px solid #fff;&#10;box-shadow: 0 0 0 2px #ffb8ce;"></textarea>
+            <div id="avatarFrameThemClearSlot"></div>
+            <div class="bubble-preview-label">对方头像框预览</div>
+            <div class="chat-area" id="abPreviewThemWrap">
+                <div class="flex-box">
+                    <div class="avatar-col">
+                        <div class="avatar-small" id="abPrevTheirFrame"></div>
+                    </div>
+                    <div class="bubble their">你好呀</div>
+                </div>
+            </div>
+
+            <div class="bubble-preview-label">用户头像框 CSS 代码</div>
+            <textarea class="modal-textarea" id="avatarFrameCssMeInput" spellcheck="false"
+                placeholder="在此输入用户头像框的 CSS 代码，例如：&#10;border: 2px solid #fff;&#10;box-shadow: 0 0 0 2px #ffb8ce;"></textarea>
+            <div id="avatarFrameMeClearSlot"></div>
+            <div class="bubble-preview-label">用户头像框预览</div>
+            <div class="chat-area" id="abPreviewMeWrap">
+                <div class="flex-box justify-end">
+                    <div class="bubble my">嗨</div>
+                    <div class="avatar-col">
+                        <div class="avatar-small" id="abPrevMyFrame"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        setAvatar(document.getElementById('abPrevTheirFrame'), state.theirAvatar);
+        setAvatar(document.getElementById('abPrevMyFrame'), state.myAvatar);
+
+        const themTa = document.getElementById('avatarFrameCssThemInput');
+        themTa.value = state.avatarFrameCssThem || '';
+        themTa.addEventListener('input', function() {
+            state.avatarFrameCssThem = this.value;
+            applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+        });
+        document.getElementById('avatarFrameThemClearSlot').appendChild(
+            createClearCodeBtn(function() {
+                themTa.value = '';
+                state.avatarFrameCssThem = '';
+                applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+                showToast('对方头像框代码已清空');
+            })
+        );
+
+        const meTa = document.getElementById('avatarFrameCssMeInput');
+        meTa.value = state.avatarFrameCssMe || '';
+        meTa.addEventListener('input', function() {
+            state.avatarFrameCssMe = this.value;
+            applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+        });
+        document.getElementById('avatarFrameMeClearSlot').appendChild(
+            createClearCodeBtn(function() {
+                meTa.value = '';
+                state.avatarFrameCssMe = '';
+                applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+                showToast('用户头像框代码已清空');
+            })
+        );
+
+        const myRange = document.getElementById('abMyAvatarRange');
+        const theirRange = document.getElementById('abTheirAvatarRange');
+        const bubbleRange = document.getElementById('abBubbleRange');
+
+        myRange.addEventListener('input', function() {
+            state.myAvatarSize = parseInt(this.value) || DEF.myAvatar;
+            document.getElementById('abMyAvatarVal').textContent = state.myAvatarSize + 'px';
+            applySizeStyle();
+        });
+        theirRange.addEventListener('input', function() {
+            state.theirAvatarSize = parseInt(this.value) || DEF.theirAvatar;
+            document.getElementById('abTheirAvatarVal').textContent = state.theirAvatarSize + 'px';
+            applySizeStyle();
+        });
+        bubbleRange.addEventListener('input', function() {
+            state.bubbleFontSize = parseInt(this.value) || DEF.bubble;
+            document.getElementById('abBubbleVal').textContent = state.bubbleFontSize + 'px';
+            applySizeStyle();
+        });
+
+        document.getElementById('abResetBtn').addEventListener('click', function() {
+            state.myAvatarSize = DEF.myAvatar;
+            state.theirAvatarSize = DEF.theirAvatar;
+            state.bubbleFontSize = DEF.bubble;
+            myRange.value = DEF.myAvatar;
+            theirRange.value = DEF.theirAvatar;
+            bubbleRange.value = DEF.bubble;
+            document.getElementById('abMyAvatarVal').textContent = DEF.myAvatar + 'px';
+            document.getElementById('abTheirAvatarVal').textContent = DEF.theirAvatar + 'px';
+            document.getElementById('abBubbleVal').textContent = DEF.bubble + 'px';
+            applySizeStyle();
+            showToast('已恢复默认大小');
+        });
+
+        modalConfirm.onclick = function() {
+            state.avatarFrameCssThem = themTa.value;
+            state.avatarFrameCssMe = meTa.value;
+            applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+            applySizeStyle();
+            saveState();
+            closeModal();
+            showToast('头像与气泡设置已保存');
+        };
+
+        modalCancel.onclick = function() {
+            state.myAvatarSize = backup.myAvatarSize;
+            state.theirAvatarSize = backup.theirAvatarSize;
+            state.bubbleFontSize = backup.bubbleFontSize;
+            state.avatarFrameCssThem = backup.avatarFrameCssThem;
+            state.avatarFrameCssMe = backup.avatarFrameCssMe;
+            applySizeStyle();
+            applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+            closeModal();
+        };
+
+        modalOverlay.classList.add('show');
+
+        applySizeStyle();
+        applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+    }
+
+    function updateChoiceCard(msg, selectedIdx) {
+        if (!msg || !msg.data) return;
+        msg.data.chosen = true;
+        msg.data.selectedIndex = selectedIdx;
+        msg.data.chosenBy = 'them';
+        const bubbles = chatArea.querySelectorAll('.bubble');
+        let targetBubble = null;
+        for (let b of bubbles) {
+            const card = b.querySelector('.choice-card');
+            if (card) {
+                const q = card.querySelector('.choice-question');
+                if (q && q.textContent === msg.data.question) {
+                    const status = card.querySelector('.choice-status');
+                    if (status && status.textContent === '抉择未完成') {
+                        targetBubble = b;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!targetBubble) return;
+        const data = msg.data;
+        const statusText = '抉择已完成';
+        const isMe = msg.from === 'me';
+        const cardClass = isMe ? 'choice-card my-choice' : 'choice-card';
+        let optionsHtml = data.options.map((opt, i) => {
+            const isChosen = data.chosen && data.selectedIndex === i;
+            const avatarHtml = (isChosen && data.chosenBy) ?
+                `<span class="opt-avatar" style="background:url(${state.theirAvatar}) center/cover;background-size:cover;"></span>` :
+                '';
+            const circledNums = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+            const label = circledNums[i] || (i + 1);
+            return `<div class="choice-opt ${isChosen ? 'selected' : ''}">
+                <span><span class="opt-label">${label}</span>${opt}</span>
+                ${avatarHtml}
+            </div>`;
+        }).join('');
+        targetBubble.innerHTML = `
+            <div class="${cardClass}">
+                <div class="choice-title">抉择</div>
+                <div class="choice-question">${data.question}</div>
+                <div class="choice-options">${optionsHtml}</div>
+                <div class="choice-status">${statusText}</div>
+            </div>
+        `;
+        const historyItem = state.chatHistory.find(h => h.id === msg.id);
+        if (historyItem) {
+            historyItem.data = msg.data;
+        }
+    }
+
+    // ============================================================
+    //  添加消息到聊天界面（时间改为气泡下方）
+    // ============================================================
+    function addMessageToChat(msg, from, time) {
+        if (msg.type === 'poke') {
+            const pokeDiv = document.createElement('div');
+            pokeDiv.className = 'flex-box poke-message';
+            pokeDiv.dataset.msgId = msg.id;
+            pokeDiv.innerHTML = `<span class="poke-text">${msg.content}</span>`;
+            chatArea.appendChild(pokeDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'flex-box' + (from === 'me' ? ' justify-end' : '');
+        div.dataset.msgId = msg.id;
+        const isMe = from === 'me';
+        const avatarUrl = isMe ? state.myAvatar : state.theirAvatar;
+        const avatarBg = avatarUrl ? `url(${avatarUrl}) center/cover` : '#ccc';
+
+        let contentHtml = '';
+        let bubbleClass = 'bubble ';
+        if (msg.type === 'text') {
+            contentHtml = msg.content;
+        } else if (msg.type === 'image') {
+            bubbleClass += 'image-message-bubble ';
+            contentHtml = `<img src="${msg.content}" alt="图片" />`;
+        } else if (msg.type === 'emoji') {
+            bubbleClass += 'emoji-bubble ';
+            contentHtml = `<img src="${msg.content}" alt="表情包" />`;
+        } else if (msg.type === 'wordcard') {
+            contentHtml = msg.content;
+        } else if (msg.type === 'choice') {
+            bubbleClass += 'choice-bubble ';
+            const data = msg.data;
+            const statusText = data.chosen ? '抉择已完成' : '抉择未完成';
+            const cardClass = isMe ? 'choice-card my-choice' : 'choice-card';
+            let optionsHtml = data.options.map((opt, i) => {
+                const isChosen = data.chosen && data.selectedIndex === i;
+                const avatarHtml = (isChosen && data.chosenBy) ?
+                    `<span class="opt-avatar" style="background:url(${state.theirAvatar}) center/cover;background-size:cover;"></span>` :
+                    '';
+                const circledNums = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+                const label = circledNums[i] || (i + 1);
+                return `<div class="choice-opt ${isChosen ? 'selected' : ''}" data-optindex="${i}">
+                    <span><span class="opt-label">${label}</span>${opt}</span>
+                    ${avatarHtml}
+                </div>`;
+            }).join('');
+            contentHtml = `
+                <div class="${cardClass}">
+                    <div class="choice-title">抉择</div>
+                    <div class="choice-question">${data.question}</div>
+                    <div class="choice-options">${optionsHtml}</div>
+                    <div class="choice-status">${statusText}</div>
+                </div>
+            `;
+        }
+
+        if (msg.revoked) {
+            const revokedDiv = document.createElement('div');
+            revokedDiv.className = 'revoked-container';
+            revokedDiv.dataset.msgId = msg.id;
+            const name = isMe ? state.myName : state.theirName;
+            revokedDiv.innerHTML = `<span class="revoked-bubble">${name}撤回了一条消息</span>`;
+            chatArea.appendChild(revokedDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return;
+        }
+
+        if (msg.quote) {
+            const quotePreview = getMsgPreview(msg.quote);
+            contentHtml = `
+                <div class="quote-preview">
+                    <div class="quote-bar-line"></div>
+                    <div class="quote-text">${quotePreview}</div>
+                </div>
+                ${contentHtml}
+            `;
+        }
+
+        // ---- 头像列（只放头像，不再有时间） ----
+        const avatarCol = document.createElement('div');
+        avatarCol.className = 'avatar-col';
+        const avatarSmall = document.createElement('div');
+        avatarSmall.className = 'avatar-small';
+        avatarSmall.style.background = avatarBg;
+        avatarSmall.style.cursor = 'default';
+        avatarSmall.addEventListener('dblclick', function(e) {
+            e.stopPropagation();
+            if (isMe) {
+                sendPokeMessage('me', 'me');
+            } else {
+                sendPokeMessage('me', 'them');
+            }
+        });
+        avatarCol.appendChild(avatarSmall);
+
+        // ---- 气泡包裹层：气泡 + 时间 ----
+        const bubbleWrap = document.createElement('div');
+        bubbleWrap.className = 'bubble-wrap';
+
+        const bubble = document.createElement('div');
+        bubble.className = bubbleClass + (isMe ? 'my' : 'their');
+        bubble.innerHTML = contentHtml;
+
+        const timeTag = document.createElement('span');
+        timeTag.className = 'time-tag';
+        timeTag.textContent = time || getTime();
+
+        bubbleWrap.appendChild(bubble);
+        bubbleWrap.appendChild(timeTag);
+
+        // ---- 操作按钮 ----
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'msg-actions';
+        actionsDiv.dataset.msgId = msg.id;
+        const isWithin2Min = (Date.now() - msg.timestamp) <= 120000;
+        let actionChips = '';
+        if (isMe) {
+            actionChips += '<span class="action-chip" data-act="quote">引用</span>';
+            if (isWithin2Min) {
+                actionChips += '<span class="action-chip" data-act="revoke">撤回</span>';
+            } else {
+                actionChips += '<span class="action-chip" data-act="delete">删除</span>';
+            }
+        } else {
+            actionChips += '<span class="action-chip" data-act="quote">引用</span>';
+            actionChips += '<span class="action-chip" data-act="delete">删除</span>';
+        }
+        actionsDiv.innerHTML = actionChips;
+
+        actionsDiv.style.left = '50%';
+        actionsDiv.style.transform = 'translateX(-50%)';
+        actionsDiv.style.top = '-28px';
+        actionsDiv.style.flexDirection = 'row';
+
+        bubble.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (state.activeActionsId === msg.id) {
+                hideAllMsgActions();
+                return;
+            }
+            hideAllMsgActions();
+            actionsDiv.classList.add('show');
+            state.activeActionsId = msg.id;
+        });
+
+        actionsDiv.querySelectorAll('.action-chip').forEach(chip => {
+            chip.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const act = this.dataset.act;
+                hideAllMsgActions();
+                if (act === 'quote') {
+                    setQuoteMessage(msg);
+                } else if (act === 'revoke') {
+                    showRevokeConfirm(msg);
+                } else if (act === 'delete') {
+                    showDeleteConfirm(msg);
+                }
+            });
+        });
+
+        div.appendChild(isMe ? bubbleWrap : avatarCol);
+        div.appendChild(isMe ? avatarCol : bubbleWrap);
+        div.appendChild(actionsDiv);
+        chatArea.appendChild(div);
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        if (msg.type === 'choice' && from === 'me' && !msg.data.chosen) {
+            const delay = 1200 + Math.random() * 1600;
+            setTimeout(() => {
+                if (msg.data.chosen) return;
+                const idx = Math.floor(Math.random() * msg.data.options.length);
+                updateChoiceCard(msg, idx);
+            }, delay);
+        }
+        if (msg.type === 'choice' && from === 'them' && !msg.data.chosen) {
+            setTimeout(() => {
+                const card = bubble.querySelector('.choice-card');
+                if (card) {
+                    card.querySelectorAll('.choice-opt').forEach(el => {
+                        el.addEventListener('click', function(ev) {
+                            ev.stopPropagation();
+                            const idx = parseInt(this.dataset.optindex || '0');
+                            msg.data.chosen = true;
+                            msg.data.selectedIndex = idx;
+                            msg.data.chosenBy = 'me';
+                            updateChoiceCard(msg, idx);
+                            simulateTheirReply();
+                        });
+                    });
+                }
+            }, 50);
+        }
+    }
+
+    function setQuoteMessage(msg) {
+        state.quoteMessage = msg;
+        quoteContentDisplay.textContent = getMsgPreview(msg);
+        quoteBarArea.classList.add('show');
+        hideAllMsgActions();
+        chatInput.focus();
+    }
+
+    function clearQuoteMessage() {
+        state.quoteMessage = null;
+        quoteContentDisplay.textContent = '';
+        quoteBarArea.classList.remove('show');
+    }
+
+    function showRevokeConfirm(msg) {
+        modalTitle.textContent = '确认撤回该消息吗？';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalExtra.innerHTML = '';
+        modalConfirm.textContent = '确认';
+        modalCancel.textContent = '取消';
+        modalCancel.style.display = 'block';
+        modalConfirm.onclick = function() {
+            revokeMessage(msg);
+            closeModal();
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    function showDeleteConfirm(msg) {
+        modalTitle.textContent = '确认删除该消息吗？';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalExtra.innerHTML = '';
+        modalConfirm.textContent = '确认';
+        modalCancel.textContent = '取消';
+        modalCancel.style.display = 'block';
+        modalConfirm.onclick = function() {
+            deleteMessage(msg);
+            closeModal();
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    function revokeMessage(msg) {
+        msg.revoked = true;
+        const historyItem = state.chatHistory.find(h => h.id === msg.id);
+        if (historyItem) historyItem.revoked = true;
+        const msgDiv = chatArea.querySelector(`.flex-box[data-msg-id="${msg.id}"]`);
+        if (msgDiv) {
+            msgDiv.remove();
+        }
+        const name = msg.from === 'me' ? state.myName : state.theirName;
+        const revokedDiv = document.createElement('div');
+        revokedDiv.className = 'revoked-container';
+        revokedDiv.dataset.msgId = msg.id;
+        revokedDiv.innerHTML = `<span class="revoked-bubble">${name}撤回了一条消息</span>`;
+        chatArea.appendChild(revokedDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        hideAllMsgActions();
+    }
+
+    function deleteMessage(msg) {
+        state.chatHistory = state.chatHistory.filter(h => h.id !== msg.id);
+        const msgDiv = chatArea.querySelector(`.flex-box[data-msg-id="${msg.id}"]`);
+        if (msgDiv) msgDiv.remove();
+        const revokedContainer = chatArea.querySelector(`.revoked-container[data-msg-id="${msg.id}"]`);
+        if (revokedContainer) revokedContainer.remove();
+        if (state.quoteMessage && state.quoteMessage.id === msg.id) {
+            clearQuoteMessage();
+        }
+        hideAllMsgActions();
+    }
+
+    function showTyping() {
+        const existing = chatArea.querySelector('.typing-indicator');
+        if (existing) existing.remove();
+        const div = document.createElement('div');
+        div.className = 'flex-box typing-indicator';
+        const avatarBg = state.theirAvatar ? `url(${state.theirAvatar}) center/cover` : '#ccc';
+        div.innerHTML = `
+            <div class="avatar-col">
+                <div class="avatar-small" style="background:${avatarBg};"></div>
+            </div>
+            <div class="bubble their" style="padding:8px 14px;margin-left:8px;">
+                <div class="typing-dots" style="display:inline-flex;gap:4px;"><span style="display:inline-block;width:6px;height:6px;background:#888;border-radius:50%;animation:dotBounce 1.2s infinite ease-in-out;"></span><span style="display:inline-block;width:6px;height:6px;background:#888;border-radius:50%;animation:dotBounce 1.2s infinite ease-in-out 0.2s;"></span><span style="display:inline-block;width:6px;height:6px;background:#888;border-radius:50%;animation:dotBounce 1.2s infinite ease-in-out 0.4s;"></span></div>
+            </div>
+        `;
+        chatArea.appendChild(div);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function hideTyping() {
+        const el = chatArea.querySelector('.typing-indicator');
+        if (el) el.remove();
+    }
+
+    function sendTheirMessage(type, content) {
+        const msg = {
+            id: generateMessageId(),
+            type,
+            content,
+            from: 'them',
+            time: getTime(),
+            timestamp: Date.now(),
+            quote: null,
+            revoked: false,
+        };
+        state.chatHistory.push(msg);
+        addMessageToChat(msg, 'them', msg.time);
+        sendMessageNotification(msg);
+    }
+
+    // ============================================================
+    //  发送队列生成（含总条数上限控制）
+    // ============================================================
+    function sendTheirComplexMessage() {
+        if (state.wordcards.length === 0) return;
+
+        const available = state.wordcards.filter((_, idx) => !state.wordcardHidden.includes(idx));
+        if (available.length === 0) return;
+
+        const minCount = state.minCardCount;
+        const maxCount = state.maxCardCount;
+
+        const totalLimit = Math.max(1, maxCount);
+
+        const wantEmoji = state.mixEmoji && state.emojiList.length > 0;
+        const emojiCount = wantEmoji ? 1 : 0;
+
+        let wordcardCount = Math.floor(minCount + Math.random() * (maxCount - minCount + 1));
+        if (wordcardCount > available.length) wordcardCount = available.length;
+        if (wordcardCount < 1) wordcardCount = 1;
+
+        if (wordcardCount + emojiCount > totalLimit) {
+            wordcardCount = Math.max(1, totalLimit - emojiCount);
+        }
+        if (totalLimit === 1 && emojiCount === 1) {
+            wordcardCount = 0;
+        }
+
+        let queue = [];
+        for (let i = 0; i < wordcardCount; i++) {
+            const randomWord = available[Math.floor(Math.random() * available.length)];
+            queue.push({ type: 'wordcard', content: randomWord });
+        }
+        if (emojiCount) {
+            const randomEmoji = state.emojiList[Math.floor(Math.random() * state.emojiList.length)];
+            const insertIndex = Math.floor(Math.random() * (queue.length + 1));
+            queue.splice(insertIndex, 0, { type: 'emoji', content: randomEmoji });
+        }
+
+        if (queue.length === 0) {
+            const randomWord = available[Math.floor(Math.random() * available.length)];
+            queue.push({ type: 'wordcard', content: randomWord });
+        }
+
+        if (queue.length > totalLimit) {
+            queue = queue.slice(0, totalLimit);
+        }
+
+        if (state.sendSeqTimer) {
+            clearTimeout(state.sendSeqTimer);
+            state.sendSeqTimer = null;
+        }
+
+        let index = 0;
+        const sendNext = () => {
+            if (index < queue.length) {
+                const currentMsg = queue[index];
+                showTyping();
+                const delay = (state.minReplyDelay + Math.random() * (state.maxReplyDelay - state.minReplyDelay)) * 1000;
+                state.sendSeqTimer = setTimeout(() => {
+                    hideTyping();
+                    sendTheirMessage(currentMsg.type, currentMsg.content);
+                    index++;
+                    sendNext();
+                }, delay);
+            } else {
+                state.sendSeqTimer = null;
+            }
+        };
+        sendNext();
+    }
+
+    function sendPokeMessage(from, to) {
+        let content = '';
+        if (from === 'me' && to === 'them') {
+            content = state.pokeThemText || '我拍了拍对方';
+        } else if (from === 'me' && to === 'me') {
+            content = '我拍了拍自己';
+        } else if (from === 'them' && to === 'me') {
+            content = state.pokeMeText || '对方拍了拍我';
+        } else if (from === 'them' && to === 'them') {
+            content = '对方拍了拍自己';
+        }
+        const msg = {
+            id: generateMessageId(),
+            type: 'poke',
+            content: content,
+            from: from,
+            time: getTime(),
+            timestamp: Date.now(),
+            quote: null,
+            revoked: false,
+        };
+        state.chatHistory.push(msg);
+        addMessageToChat(msg, from, msg.time);
+        hideAllMsgActions();
+        if (from === 'me') {
+            state.hasUserSentMessage = true;
+        } else {
+            sendMessageNotification(msg);
+        }
+    }
+
+    // ============================================================
+    //  模拟对方回复（输入动画时长由 最短/最长等待 决定）
+    // ============================================================
+    function simulateTheirReply() {
+        if (state.wordcards.length === 0) return;
+        const delayMs = (state.minReplyDelay + Math.random() * (state.maxReplyDelay - state.minReplyDelay)) * 1000;
+        showTyping();
+        clearTimeout(state.typingTimer);
+        state.typingTimer = setTimeout(() => {
+            hideTyping();
+
+            if (Math.random() < 0.10) {
+                sendPokeMessage('them', 'me');
+                showTyping();
+                const nextDelay = (state.minReplyDelay + Math.random() * (state.maxReplyDelay - state.minReplyDelay)) * 1000;
+                clearTimeout(state.typingTimer);
+                state.typingTimer = setTimeout(() => {
+                    hideTyping();
+                    sendTheirComplexMessage();
+                }, nextDelay);
+            } else {
+                sendTheirComplexMessage();
+            }
+        }, delayMs);
+    }
+
+    // 主动发送：每一条消息发出后重新计时，间隔到点再次主动发消息
+    function startAutoReplyLoop() {
+        if (state.autoReplyTimer) clearTimeout(state.autoReplyTimer);
+        const scheduleNext = () => {
+            if (!state.activeSend) return;
+            if (state.wordcards.length === 0) return;
+            const delay = state.activeSendInterval * 60 * 1000;
+            state.autoReplyTimer = setTimeout(() => {
+                if (Math.random() < 0.10) {
+                    sendPokeMessage('them', 'me');
+                    setTimeout(() => {
+                        sendTheirComplexMessage();
+                    }, 500);
+                } else {
+                    sendTheirComplexMessage();
+                }
+                scheduleNext();
+            }, delay);
+        };
+        scheduleNext();
+    }
+
+    function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        const quote = state.quoteMessage;
+        const msgObj = {
+            id: generateMessageId(),
+            type: 'text',
+            content: text,
+            from: 'me',
+            time: getTime(),
+            timestamp: Date.now(),
+            quote: quote,
+            revoked: false,
+        };
+        state.chatHistory.push(msgObj);
+        addMessageToChat(msgObj, 'me', msgObj.time);
+        chatInput.value = '';
+        clearQuoteMessage();
+        state.hasUserSentMessage = true;
+        if (state.autoReplyTimer) clearTimeout(state.autoReplyTimer);
+        simulateTheirReply();
+        startAutoReplyLoop();
+    }
+
+    function showPage(pageId) {
+        if (pageId === 'wordcard-page') {
+            wordcardPage.classList.add('active');
+            renderWordcards();
+            exitSelectMode();
+            return;
+        }
+        if (pageId === 'settings-config-page') {
+            settingsConfigPage.classList.add('active');
+            return;
+        }
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(pageId);
+        if (target) target.classList.add('active');
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+        hideAllMsgActions();
+    }
+
+    function closeWordcardModal() {
+        wordcardPage.classList.remove('active');
+    }
+
+    function closeSettingsConfigPage() {
+        settingsConfigPage.classList.remove('active');
+    }
+
+    function updateSettingBackgrounds() {
+        const bg = state.bgImage || '';
+        const settingsPageEl = document.getElementById('settings-page');
+        if (bg) {
+            settingsPageEl.style.backgroundImage = `url(${bg})`;
+        } else {
+            settingsPageEl.style.backgroundImage = 'none';
+        }
+    }
+
+    $('menuSettings').addEventListener('click', function() {
+        document.getElementById('minReplyDelayRange').value = state.minReplyDelay;
+        document.getElementById('minReplyDelayVal').textContent = state.minReplyDelay + 's';
+        document.getElementById('maxReplyDelayRange').value = state.maxReplyDelay;
+        document.getElementById('maxReplyDelayVal').textContent = (state.maxReplyDelay >= 60 ? (state.maxReplyDelay / 60).toFixed(1) + '分钟' : state.maxReplyDelay + 's');
+
+        document.getElementById('toggleActiveSend').className = 'toggle-switch' + (state.activeSend ? ' on' : '');
+        document.getElementById('activeSendIntervalRange').value = state.activeSendInterval;
+        document.getElementById('activeSendIntervalVal').textContent = state.activeSendInterval + '分钟';
+
+        document.getElementById('toggleMixEmoji').className = 'toggle-switch' + (state.mixEmoji ? ' on' : '');
+        document.getElementById('minCardCountRange').value = state.minCardCount;
+        document.getElementById('minCardCountVal').textContent = state.minCardCount + '条';
+        document.getElementById('maxCardCountRange').value = state.maxCardCount;
+        document.getElementById('maxCardCountVal').textContent = state.maxCardCount + '条';
+
+        // 新增两个开关状态回填
+        document.getElementById('toggleShowTime').className = 'toggle-switch' + (state.showChatTime ? ' on' : '');
+        document.getElementById('toggleKeepAlive').className = 'toggle-switch' + (state.keepAlive ? ' on' : '');
+
+        showPage('settings-config-page');
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+    });
+
+    // 气泡美化按钮
+    $('menuBubble').addEventListener('click', function() {
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+        showBubbleCssModal();
+    });
+
+    // 头像气泡按钮
+    $('menuAvatarBubble').addEventListener('click', function() {
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+        showAvatarBubbleModal();
+    });
+
+    document.getElementById('minReplyDelayRange').addEventListener('input', function() {
+        state.minReplyDelay = parseInt(this.value);
+        document.getElementById('minReplyDelayVal').textContent = state.minReplyDelay + 's';
+    });
+    document.getElementById('maxReplyDelayRange').addEventListener('input', function() {
+        state.maxReplyDelay = parseInt(this.value);
+        document.getElementById('maxReplyDelayVal').textContent = state.maxReplyDelay >= 60 ? (state.maxReplyDelay / 60).toFixed(1) + '分钟' : state.maxReplyDelay + 's';
+    });
+    document.getElementById('activeSendIntervalRange').addEventListener('input', function() {
+        state.activeSendInterval = parseInt(this.value);
+        document.getElementById('activeSendIntervalVal').textContent = state.activeSendInterval + '分钟';
+    });
+    document.getElementById('minCardCountRange').addEventListener('input', function() {
+        state.minCardCount = parseInt(this.value);
+        document.getElementById('minCardCountVal').textContent = state.minCardCount + '条';
+        if (state.minCardCount > state.maxCardCount) {
+            state.maxCardCount = state.minCardCount;
+            document.getElementById('maxCardCountRange').value = state.maxCardCount;
+            document.getElementById('maxCardCountVal').textContent = state.maxCardCount + '条';
+        }
+    });
+    document.getElementById('maxCardCountRange').addEventListener('input', function() {
+        state.maxCardCount = parseInt(this.value);
+        document.getElementById('maxCardCountVal').textContent = state.maxCardCount + '条';
+        if (state.maxCardCount < state.minCardCount) {
+            state.minCardCount = state.maxCardCount;
+            document.getElementById('minCardCountRange').value = state.minCardCount;
+            document.getElementById('minCardCountVal').textContent = state.minCardCount + '条';
+        }
+    });
+
+    document.getElementById('toggleActiveSend').addEventListener('click', function() {
+        state.activeSend = !state.activeSend;
+        this.className = 'toggle-switch' + (state.activeSend ? ' on' : '');
+        if (!state.activeSend && state.autoReplyTimer) {
+            clearTimeout(state.autoReplyTimer);
+            state.autoReplyTimer = null;
+        }
+        if (state.activeSend) {
+            startAutoReplyLoop();
+        }
+    });
+    document.getElementById('toggleMixEmoji').addEventListener('click', function() {
+        state.mixEmoji = !state.mixEmoji;
+        this.className = 'toggle-switch' + (state.mixEmoji ? ' on' : '');
+    });
+
+    // 显示聊天时间开关
+    document.getElementById('toggleShowTime').addEventListener('click', function() {
+        state.showChatTime = !state.showChatTime;
+        this.className = 'toggle-switch' + (state.showChatTime ? ' on' : '');
+        applyTimeVisibility();
+    });
+
+    // 后台保活开关
+    document.getElementById('toggleKeepAlive').addEventListener('click', function() {
+        state.keepAlive = !state.keepAlive;
+        this.className = 'toggle-switch' + (state.keepAlive ? ' on' : '');
+        if (state.keepAlive) {
+            startKeepAlive();
+            requestNotifyPermission();
+            showToast('后台保活已开启');
+        } else {
+            stopKeepAlive();
+            showToast('后台保活已关闭');
+        }
+    });
+
+    document.getElementById('settingsConfigClose').addEventListener('click', function() {
+        closeSettingsConfigPage();
+    });
+    document.getElementById('settingsConfigConfirm').addEventListener('click', function() {
+        saveState();
+        closeSettingsConfigPage();
+        showToast('设置已保存');
+    });
+
+    // ============================================================
+    //  表情包删除逻辑
+    // ============================================================
+    function renderEmojiModal() {
+        emojiModalBody.innerHTML = '';
+        const addBtn = document.createElement('div');
+        addBtn.className = 'add-emoji-btn';
+        addBtn.textContent = '+ 添加';
+        addBtn.addEventListener('click', function() {
+            const input = $('emojiAddInput');
+            input.click();
+            input.onchange = function(e) {
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        state.emojiList.push(ev.target.result);
+                        renderEmojiModal();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                input.value = '';
+            };
+        });
+        emojiModalBody.appendChild(addBtn);
+
+        state.emojiList.forEach((url, idx) => {
+            const img = document.createElement('img');
+            img.className = 'emoji-item';
+            img.src = url;
+
+            if (state.emojiDeleting) {
+                img.addEventListener('click', function() {
+                    if (state.emojiSelected.includes(idx)) {
+                        state.emojiSelected = state.emojiSelected.filter(i => i !== idx);
+                        img.classList.remove('selected');
+                    } else {
+                        state.emojiSelected.push(idx);
+                        img.classList.add('selected');
+                    }
+                });
+            } else {
+                img.addEventListener('click', function() {
+                    const msg = {
+                        id: generateMessageId(),
+                        type: 'emoji',
+                        content: url,
+                        from: 'me',
+                        time: getTime(),
+                        timestamp: Date.now(),
+                        quote: state.quoteMessage,
+                        revoked: false,
+                    };
+                    state.chatHistory.push(msg);
+                    addMessageToChat(msg, 'me', msg.time);
+                    closeEmojiModal();
+                    plusMenu.classList.remove('open');
+                    plusBtn.classList.remove('open');
+                    clearQuoteMessage();
+                    state.hasUserSentMessage = true;
+                    if (state.autoReplyTimer) clearTimeout(state.autoReplyTimer);
+                    simulateTheirReply();
+                    startAutoReplyLoop();
+                });
+            }
+            emojiModalBody.appendChild(img);
+        });
+    }
+
+    emojiModalClose.addEventListener('click', closeEmojiModal);
+    emojiModal.addEventListener('click', function(e) {
+        if (e.target === this) closeEmojiModal();
+    });
+
+    emojiDeleteBtn.addEventListener('click', function() {
+        state.emojiDeleting = true;
+        state.emojiSelected = [];
+        emojiDeleteBtn.style.display = 'none';
+        emojiModalClose.style.display = 'none';
+        emojiCancelDeleteBtn.style.display = 'block';
+        emojiConfirmDeleteBtn.style.display = 'block';
+        renderEmojiModal();
+    });
+
+    emojiCancelDeleteBtn.addEventListener('click', function() {
+        state.emojiDeleting = false;
+        state.emojiSelected = [];
+        emojiDeleteBtn.style.display = 'block';
+        emojiModalClose.style.display = 'block';
+        emojiCancelDeleteBtn.style.display = 'none';
+        emojiConfirmDeleteBtn.style.display = 'none';
+        renderEmojiModal();
+    });
+
+    emojiConfirmDeleteBtn.addEventListener('click', function() {
+        const sorted = state.emojiSelected.slice().sort((a,b) => b-a);
+        sorted.forEach(idx => {
+            state.emojiList.splice(idx, 1);
+        });
+        state.emojiDeleting = false;
+        state.emojiSelected = [];
+        emojiDeleteBtn.style.display = 'block';
+        emojiModalClose.style.display = 'block';
+        emojiCancelDeleteBtn.style.display = 'none';
+        emojiConfirmDeleteBtn.style.display = 'none';
+        renderEmojiModal();
+        showToast('表情已删除');
+    });
+
+    function openEmojiModal() {
+        emojiModal.classList.add('show');
+        state.emojiDeleting = false;
+        state.emojiSelected = [];
+        emojiDeleteBtn.style.display = 'block';
+        emojiModalClose.style.display = 'block';
+        emojiCancelDeleteBtn.style.display = 'none';
+        emojiConfirmDeleteBtn.style.display = 'none';
+        renderEmojiModal();
+    }
+
+    function closeEmojiModal() {
+        emojiModal.classList.remove('show');
+    }
+
+    // ============================================================
+    //  字卡相关逻辑
+    // ============================================================
+    function renderWordcards(filter = '') {
+        wordcardList.innerHTML = '';
+        const list = state.wordcards
+            .map((text, idx) => ({ text, idx }))
+            .filter(item => item.text.includes(filter));
+        list.forEach(({ text, idx }) => {
+            const hidden = state.wordcardHidden.includes(idx);
+            const selected = state.selectMode && state.selectedIndices.includes(idx);
+            const row = document.createElement('div');
+            row.className = 'wordcard-item-row' + (hidden ? ' disabled' : '') + (selected ? ' selected' : '');
+            row.dataset.idx = idx;
+            row.innerHTML = `
+                <span class="text">${text}</span>
+                <div class="actions">
+                    <span class="act hidden-icon ${hidden ? '' : 'active'}" data-idx="${idx}" data-action="hide">👁️</span>
+                    <span class="act" data-idx="${idx}" data-action="tag">🏷️</span>
+                    <span class="act" data-idx="${idx}" data-action="edit">✏️</span>
+                    <span class="act" data-idx="${idx}" data-action="delete">🗑️</span>
+                </div>
+            `;
+            if (state.selectMode) {
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('.actions')) return;
+                    const i = parseInt(this.dataset.idx);
+                    toggleSelect(i);
+                });
+            }
+            wordcardList.appendChild(row);
+        });
+        wordcardList.querySelectorAll('.act').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const idx = parseInt(this.dataset.idx);
+                const action = this.dataset.action;
+                handleWordcardAction(idx, action);
+            });
+        });
+        updateSelectUI();
+    }
+
+    function handleWordcardAction(idx, action) {
+        if (action === 'hide') {
+            const pos = state.wordcardHidden.indexOf(idx);
+            if (pos > -1) {
+                state.wordcardHidden.splice(pos, 1);
+            } else {
+                state.wordcardHidden.push(idx);
+            }
+            renderWordcards(wordcardSearch.value);
+        } else if (action === 'tag') {
+            showModal('提示', '还没有分组，是否立即创建？', 'tag', null);
+        } else if (action === 'edit') {
+            showModal('修改内容', state.wordcards[idx], 'edit', (val) => {
+                if (val.trim()) {
+                    state.wordcards[idx] = val.trim();
+                    renderWordcards(wordcardSearch.value);
+                }
+            });
+        } else if (action === 'delete') {
+            showModal('确认删除', '确认删除当前字卡吗？', 'delete', () => {
+                state.wordcards.splice(idx, 1);
+                state.wordcardHidden = state.wordcardHidden.filter(i => i !== idx);
+                renderWordcards(wordcardSearch.value);
+            });
+        }
+    }
+
+    function addWordcardsBatch(texts) {
+        const newSet = new Set([...state.wordcards, ...texts]);
+        state.wordcards = Array.from(newSet);
+        renderWordcards(wordcardSearch.value);
+    }
+
+    function enterSelectMode() {
+        state.selectMode = true;
+        state.selectedIndices = [];
+        selectModeArea.style.display = 'block';
+        renderWordcards(wordcardSearch.value);
+        updateSelectUI();
+    }
+
+    function exitSelectMode() {
+        state.selectMode = false;
+        state.selectedIndices = [];
+        selectModeArea.style.display = 'none';
+        renderWordcards(wordcardSearch.value);
+    }
+
+    function toggleSelect(idx) {
+        const pos = state.selectedIndices.indexOf(idx);
+        if (pos > -1) {
+            state.selectedIndices.splice(pos, 1);
+        } else {
+            state.selectedIndices.push(idx);
+        }
+        renderWordcards(wordcardSearch.value);
+        updateSelectUI();
+    }
+
+    function updateSelectUI() {
+        const count = state.selectedIndices.length;
+        selectedCount.textContent = `已选 ${count} 条`;
+        const hasSelected = count > 0;
+        batchGroupBtn.disabled = !hasSelected;
+        batchHideBtn.disabled = !hasSelected;
+        batchDeleteBtn.disabled = !hasSelected;
+        const all = state.wordcards.length;
+        const selectedAll = state.selectedIndices.length === all && all > 0;
+        selectAllBtn.textContent = selectedAll ? '取消全选' : '全选';
+    }
+
+    selectAllBtn.addEventListener('click', function() {
+        const all = state.wordcards.length;
+        if (state.selectedIndices.length === all && all > 0) {
+            state.selectedIndices = [];
+        } else {
+            state.selectedIndices = state.wordcards.map((_, i) => i);
+        }
+        renderWordcards(wordcardSearch.value);
+        updateSelectUI();
+    });
+
+    batchHideBtn.addEventListener('click', function() {
+        if (state.selectedIndices.length === 0) return;
+        const selected = state.selectedIndices;
+        const allHidden = selected.every(idx => state.wordcardHidden.includes(idx));
+        if (allHidden) {
+            selected.forEach(idx => {
+                const pos = state.wordcardHidden.indexOf(idx);
+                if (pos > -1) state.wordcardHidden.splice(pos, 1);
+            });
+            showToast('所选字卡已解除屏蔽');
+        } else {
+            selected.forEach(idx => {
+                if (!state.wordcardHidden.includes(idx)) {
+                    state.wordcardHidden.push(idx);
+                }
+            });
+            showToast('所选字卡已屏蔽');
+        }
+        renderWordcards(wordcardSearch.value);
+        updateSelectUI();
+    });
+
+    batchDeleteBtn.addEventListener('click', function() {
+        if (state.selectedIndices.length === 0) return;
+        const count = state.selectedIndices.length;
+        showModal('确认删除', `确定删除选中的${count}条？`, 'batchDelete', () => {
+            const sorted = state.selectedIndices.slice().sort((a, b) => b - a);
+            sorted.forEach(idx => {
+                state.wordcards.splice(idx, 1);
+            });
+            state.wordcardHidden = [];
+            state.selectedIndices = [];
+            renderWordcards(wordcardSearch.value);
+            updateSelectUI();
+            exitSelectMode();
+        });
+    });
+
+    batchGroupBtn.addEventListener('click', function() {
+        if (state.selectedIndices.length === 0) return;
+        showGroupManagerForBatch();
+    });
+
+    function showToast(msg) {
+        const div = document.createElement('div');
+        div.style.cssText =
+            'position:absolute;bottom:120px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:200;backdrop-filter:blur(4px);';
+        div.textContent = msg;
+        document.querySelector('.phone').appendChild(div);
+        setTimeout(() => div.remove(), 2000);
+    }
+
+    function showGroupManager() {
+        const content = document.createElement('div');
+        content.style.cssText = 'width:100%;text-align:center;padding:6px 0;';
+        if (state.groups.length === 0) {
+            content.innerHTML = `
+                <div style="font-size:14px;color:#666;margin:16px 0;">还没有分组<br>点击下方按钮创建第一个分组</div>
+                <button class="mbtn confirm" style="padding:8px 20px;border-radius:30px;border:none;background:#007aff;color:#fff;font-size:14px;cursor:pointer;" id="createGroupBtn">+ 新建分组</button>
+            `;
+        } else {
+            let html = '<div style="text-align:left;margin:10px 0;">';
+            state.groups.forEach((g, i) => {
+                html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">
+                    <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${g.color};"></span>
+                    <span style="flex:1;">${g.name}</span>
+                    <span style="color:#999;font-size:12px;cursor:pointer;" data-gidx="${i}" class="del-group">✕</span>
+                </div>`;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+            content.querySelectorAll('.del-group').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.gidx);
+                    state.groups.splice(idx, 1);
+                    showGroupManager();
+                });
+            });
+            const btn = document.createElement('button');
+            btn.className = 'mbtn confirm';
+            btn.style.cssText =
+                'padding:8px 20px;border-radius:30px;border:none;background:#007aff;color:#fff;font-size:14px;cursor:pointer;margin-top:10px;';
+            btn.textContent = '+ 新建分组';
+            btn.addEventListener('click', () => {
+                closeModal();
+                showCreateGroup();
+            });
+            content.appendChild(btn);
+        }
+        modalExtra.innerHTML = '';
+        modalExtra.appendChild(content);
+        modalTitle.textContent = '分组管理';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalConfirm.textContent = '关闭';
+        modalConfirm.onclick = function() { closeModal(); };
+        modalCancel.style.display = 'none';
+        modalOverlay.classList.add('show');
+        const createBtn = document.getElementById('createGroupBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
+                closeModal();
+                showCreateGroup();
+            });
+        }
+    }
+
+    function showCreateGroup() {
+        modalTitle.textContent = '新建分组';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'block';
+        modalInputSimple.placeholder = '分组名称…';
+        modalInputSimple.value = '';
+        const extra = document.createElement('div');
+        extra.style.cssText = 'width:100%;';
+        const colors = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#AF52DE', '#FF2D92'];
+        let selectedColor = colors[0];
+        const colorHtml = `
+            <div style="margin:8px 0;">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+                    ${colors.map(c => `<div class="color-sq" style="background:${c};width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid ${c===selectedColor?'#007aff':'transparent'};" data-color="${c}"></div>`).join('')}
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;justify-content:space-between;">
+                    <span style="font-size:13px;color:#666;cursor:pointer;" id="customColorTrigger">自定义</span>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:12px;color:#888;">预览</span>
+                        <div class="preview-box" id="previewColorBox" style="width:36px;height:36px;border-radius:8px;background:${selectedColor};border:1px solid #ddd;"></div>
+                        <span style="font-size:11px;color:#888;" id="colorHexDisplay">${selectedColor}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        extra.innerHTML = colorHtml;
+        extra.querySelectorAll('.color-sq').forEach(el => {
+            el.addEventListener('click', function() {
+                const c = this.dataset.color;
+                selectedColor = c;
+                document.querySelectorAll('.color-sq').forEach(sq => sq.style.borderColor = 'transparent');
+                this.style.borderColor = '#007aff';
+                document.getElementById('previewColorBox').style.background = c;
+                document.getElementById('colorHexDisplay').textContent = c;
+            });
+        });
+        const customTrigger = extra.querySelector('#customColorTrigger');
+        customTrigger.addEventListener('click', function() {
+            showCustomColorPicker((color) => {
+                selectedColor = color;
+                document.querySelectorAll('.color-sq').forEach(sq => sq.style.borderColor = 'transparent');
+                document.getElementById('previewColorBox').style.background = color;
+                document.getElementById('colorHexDisplay').textContent = color;
+            });
+        });
+        modalExtra.innerHTML = '';
+        modalExtra.appendChild(extra);
+        modalInputSimple.style.display = 'block';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalConfirm.textContent = '保存';
+        modalCancel.style.display = 'block';
+        modalCancel.textContent = '取消';
+        modalConfirm.onclick = function() {
+            const name = modalInputSimple.value.trim();
+            if (!name) { alert('请输入分组名称'); return; }
+            state.groups.push({ name, color: selectedColor });
+            closeModal();
+            showToast('分组创建成功');
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    function showCustomColorPicker(callback) {
+        modalTitle.textContent = '选择颜色';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        const extra = document.createElement('div');
+        extra.style.cssText = 'width:100%;';
+        let h = 210, s = 80, v = 80;
+        const updateColor = () => {
+            const color = `hsl(${h}, ${s}%, ${v}%)`;
+            document.getElementById('customPreview').style.background = color;
+            document.getElementById('customHex').textContent = color;
+        };
+        extra.innerHTML = `
+            <div class="color-picker-sliders">
+                <label>色调 <input type="range" min="0" max="360" value="${h}" class="hue-slider" /></label>
+                <label>饱和度 <input type="range" min="0" max="100" value="${s}" class="sat-slider" /></label>
+                <label>明度 <input type="range" min="0" max="100" value="${v}" class="val-slider" /></label>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;margin-top:8px;">
+                <span style="font-size:13px;">预览</span>
+                <div id="customPreview" style="width:40px;height:40px;border-radius:8px;background:hsl(${h},${s}%,${v}%);border:1px solid #ddd;"></div>
+                <span id="customHex" style="font-size:12px;color:#888;">hsl(${h},${s}%,${v}%)</span>
+            </div>
+        `;
+        modalExtra.innerHTML = '';
+        modalExtra.appendChild(extra);
+        extra.querySelector('.hue-slider').addEventListener('input', function() { h = parseInt(this.value); updateColor(); });
+        extra.querySelector('.sat-slider').addEventListener('input', function() { s = parseInt(this.value); updateColor(); });
+        extra.querySelector('.val-slider').addEventListener('input', function() { v = parseInt(this.value); updateColor(); });
+        modalConfirm.textContent = '设置';
+        modalCancel.textContent = '取消';
+        modalConfirm.onclick = function() {
+            const color = `hsl(${h}, ${s}%, ${v}%)`;
+            closeModal();
+            callback(color);
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    function showGroupManagerForBatch() {
+        if (state.groups.length === 0) {
+            showToast('请先创建分组');
+            return;
+        }
+        const content = document.createElement('div');
+        content.style.cssText = 'width:100%;text-align:center;';
+        let html = '<div style="margin:8px 0;font-size:14px;font-weight:500;">选择分组</div>';
+        state.groups.forEach((g, i) => {
+            html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;cursor:pointer;" data-gidx="${i}" class="group-select-item">
+                <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${g.color};"></span>
+                <span>${g.name}</span>
+            </div>`;
+        });
+        content.innerHTML = html;
+        modalExtra.innerHTML = '';
+        modalExtra.appendChild(content);
+        modalTitle.textContent = '选择分组';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalConfirm.textContent = '取消';
+        modalCancel.style.display = 'none';
+        modalConfirm.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+        content.querySelectorAll('.group-select-item').forEach(el => {
+            el.addEventListener('click', function() {
+                const gidx = parseInt(this.dataset.gidx);
+                showToast(`已分配到 ${state.groups[gidx].name}`);
+                closeModal();
+            });
+        });
+    }
+
+    let modalCallback = null;
+    let modalType = '';
+
+    function showModal(title, content, type, callback) {
+        modalTitle.textContent = title;
+        modalSub.textContent = typeof content === 'string' ? content : '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        modalExtra.innerHTML = '';
+        modalCallback = callback || null;
+        modalType = type;
+
+        if (type === 'edit') {
+            modalInputSimple.style.display = 'block';
+            modalInputSimple.value = content || '';
+            modalInputSimple.placeholder = '请输入新内容';
+            modalSub.textContent = '';
+        } else if (type === 'batch') {
+            modalTextarea.style.display = 'block';
+            modalTextarea.value = '';
+            modalTextarea.placeholder = '在此粘贴内容，每行一条。';
+            modalCount.style.display = 'block';
+            modalCount.textContent = '共 0 条';
+            modalTextarea.addEventListener('input', updateBatchCount);
+            modalSub.textContent = '每行一条，自动去重';
+        } else if (type === 'download') {
+            const listHtml = state.wordcards.map((w, i) => `<div class="dl-item">${i+1}. ${w}</div>`).join('');
+            modalExtra.innerHTML = `
+                <div style="margin:6px 0;font-size:14px;font-weight:500;">全部字卡 ${state.wordcards.length} 条</div>
+                <div class="download-list">${listHtml}</div>
+            `;
+            modalSub.textContent = '';
+            modalConfirm.textContent = '下载';
+            modalCancel.textContent = '取消';
+            modalConfirm.onclick = function() {
+                const content = state.wordcards.join('\n');
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '字卡列表.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                closeModal();
+            };
+            modalCancel.onclick = function() { closeModal(); };
+            modalOverlay.classList.add('show');
+            return;
+        } else if (type === 'choice') {
+            const choiceCircledNums = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+            modalExtra.innerHTML = `
+                <div style="margin:4px 0 8px;">
+                    <div class="choice-modal-input-group">
+                        <label>请输入您的问题</label>
+                        <input id="choiceQuestion" placeholder="输入问题..." />
+                    </div>
+                    <div class="choice-modal-input-group">
+                        <label>选项</label>
+                    </div>
+                    <div class="choice-dynamic-options" id="choiceDynamicOptions"></div>
+                    <button class="choice-add-opt-btn" id="choiceAddOptBtn">+ 添加选项</button>
+                </div>
+            `;
+            modalSub.textContent = '';
+            modalConfirm.textContent = '抉择';
+            modalCancel.textContent = '取消';
+
+            const optContainer = document.getElementById('choiceDynamicOptions');
+            let choiceOptCount = 0;
+
+            function getChoiceCircledNum(idx) {
+                return choiceCircledNums[idx] || (idx + 1);
+            }
+            function refreshChoiceLabels() {
+                const rows = optContainer.querySelectorAll('.choice-option-row');
+                rows.forEach((row, i) => {
+                    const tag = row.querySelector('.opt-label-tag');
+                    if (tag) tag.textContent = getChoiceCircledNum(i);
+                });
+            }
+            function addChoiceOpt(value) {
+                const row = document.createElement('div');
+                row.className = 'choice-option-row';
+                row.innerHTML = `
+                    <span class="opt-label-tag">${getChoiceCircledNum(choiceOptCount)}</span>
+                    <input class="choice-opt-input" placeholder="输入选项..." value="${value || ''}" />
+                    <button class="del-opt-btn" title="删除">×</button>
+                `;
+                row.querySelector('.del-opt-btn').onclick = function() {
+                    row.remove();
+                    choiceOptCount--;
+                    refreshChoiceLabels();
+                };
+                optContainer.appendChild(row);
+                choiceOptCount++;
+            }
+
+            addChoiceOpt('');
+            addChoiceOpt('');
+
+            document.getElementById('choiceAddOptBtn').onclick = function() {
+                addChoiceOpt('');
+            };
+
+            modalConfirm.onclick = function() {
+                const q = document.getElementById('choiceQuestion').value.trim();
+                const inputs = optContainer.querySelectorAll('.choice-opt-input');
+                const options = [];
+                inputs.forEach(inp => {
+                    const v = inp.value.trim();
+                    if (v) options.push(v);
+                });
+                if (!q) {
+                    alert('请输入问题');
+                    return;
+                }
+                if (options.length < 2) {
+                    alert('请至少填写两个选项');
+                    return;
+                }
+                const choiceData = {
+                    question: q,
+                    options: options,
+                    chosen: false,
+                    selectedIndex: -1,
+                    chosenBy: null,
+                };
+                const msg = {
+                    id: generateMessageId(),
+                    type: 'choice',
+                    data: choiceData,
+                    from: 'me',
+                    time: getTime(),
+                    timestamp: Date.now(),
+                    quote: state.quoteMessage,
+                    revoked: false,
+                };
+                state.chatHistory.push(msg);
+                addMessageToChat(msg, 'me', msg.time);
+                clearQuoteMessage();
+                state.hasUserSentMessage = true;
+                if (state.autoReplyTimer) clearTimeout(state.autoReplyTimer);
+                simulateTheirReply();
+                startAutoReplyLoop();
+                closeModal();
+            };
+            modalCancel.onclick = function() { closeModal(); };
+            modalOverlay.classList.add('show');
+            return;
+        } else if (type === 'tag' || type === 'delete' || type === 'clear' || type === 'batchDelete') {
+            // 无输入框
+        } else {
+            modalInputSimple.style.display = 'block';
+            modalInputSimple.value = '';
+            modalInputSimple.placeholder = '请输入';
+            modalSub.textContent = '';
+        }
+        modalConfirm.textContent = '确认';
+        modalCancel.textContent = '取消';
+        modalCancel.style.display = 'block';
+        modalConfirm.onclick = function() {
+            if (modalType === 'edit') {
+                const val = modalInputSimple.value.trim();
+                if (modalCallback) modalCallback(val);
+                closeModal();
+            } else if (modalType === 'batch') {
+                const lines = modalTextarea.value.split('\n').map(s => s.trim()).filter(s => s);
+                if (lines.length) {
+                    addWordcardsBatch(lines);
+                }
+                closeModal();
+            } else if (modalType === 'tag') {
+                closeModal();
+            } else if (modalType === 'delete') {
+                if (modalCallback) modalCallback();
+                closeModal();
+            } else if (modalType === 'batchDelete') {
+                if (modalCallback) modalCallback();
+                closeModal();
+            } else if (modalType === 'clear') {
+                chatArea.innerHTML = '';
+                state.chatHistory = [];
+                closeModal();
+            } else {
+                const val = modalInputSimple.value.trim();
+                if (modalCallback) modalCallback(val);
+                closeModal();
+            }
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove('show');
+        modalCallback = null;
+        modalType = '';
+        if (modalTextarea) {
+            modalTextarea.removeEventListener('input', updateBatchCount);
+        }
+    }
+
+    function updateBatchCount() {
+        const lines = modalTextarea.value.split('\n').filter(s => s.trim());
+        modalCount.textContent = `共 ${lines.length} 条`;
+    }
+
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    function showPokeSettings() {
+        modalTitle.textContent = '拍一拍设置';
+        modalSub.textContent = '';
+        modalInputSimple.style.display = 'none';
+        modalTextarea.style.display = 'none';
+        modalCount.style.display = 'none';
+        const extra = document.createElement('div');
+        extra.style.cssText = 'width:100%;';
+        extra.innerHTML = `
+            <div class="poke-settings-card" id="pokeThemCard">
+                <span class="poke-prefix">拍一拍对方</span>
+                <input id="pokeThemInput" placeholder="我拍了拍对方..." value="${state.pokeThemText}" />
+            </div>
+            <div class="poke-settings-card" id="pokeMeCard">
+                <span class="poke-prefix">拍一拍我</span>
+                <input id="pokeMeInput" placeholder="对方拍了拍我..." value="${state.pokeMeText}" />
+            </div>
+        `;
+        modalExtra.innerHTML = '';
+        modalExtra.appendChild(extra);
+        const themCard = document.getElementById('pokeThemCard');
+        const meCard = document.getElementById('pokeMeCard');
+        themCard.addEventListener('click', function() {
+            document.getElementById('pokeThemInput').focus();
+        });
+        meCard.addEventListener('click', function() {
+            document.getElementById('pokeMeInput').focus();
+        });
+
+        modalConfirm.textContent = '确认';
+        modalCancel.textContent = '取消';
+        modalCancel.style.display = 'block';
+        modalConfirm.onclick = function() {
+            state.pokeThemText = document.getElementById('pokeThemInput').value.trim();
+            state.pokeMeText = document.getElementById('pokeMeInput').value.trim();
+            closeModal();
+            showToast('拍一拍设置已保存');
+        };
+        modalCancel.onclick = function() { closeModal(); };
+        modalOverlay.classList.add('show');
+    }
+
+    sendBtn.addEventListener('click', () => sendMessage());
+    chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault();
+            sendMessage(); }
+    });
+
+    plusBtn.addEventListener('click', () => {
+        plusMenu.classList.toggle('open');
+        plusBtn.classList.toggle('open');
+        if (!plusMenu.classList.contains('open')) {
+            hideAllMsgActions();
+        }
+    });
+
+    quoteCloseBtn.addEventListener('click', clearQuoteMessage);
+
+    $('menuAlbum').addEventListener('click', function() {
+        const input = $('albumSendInput');
+        input.click();
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const data = ev.target.result;
+                const msg = {
+                    id: generateMessageId(),
+                    type: 'image',
+                    content: data,
+                    from: 'me',
+                    time: getTime(),
+                    timestamp: Date.now(),
+                    quote: state.quoteMessage,
+                    revoked: false,
+                };
+                state.chatHistory.push(msg);
+                addMessageToChat(msg, 'me', msg.time);
+                plusMenu.classList.remove('open');
+                plusBtn.classList.remove('open');
+                clearQuoteMessage();
+                state.hasUserSentMessage = true;
+                if (state.autoReplyTimer) clearTimeout(state.autoReplyTimer);
+                simulateTheirReply();
+                startAutoReplyLoop();
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        };
+    });
+
+    $('menuEmoji').addEventListener('click', function() {
+        openEmojiModal();
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+    });
+
+    $('menuWordcard').addEventListener('click', function() {
+        showPage('wordcard-page');
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+    });
+
+    $('menuChoice').addEventListener('click', function() {
+        showModal('抉择', '', 'choice', null);
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+    });
+
+    // ============================================================
+    //  主题切换
+    // ============================================================
+    $('menuTheme').addEventListener('click', function() {
+        state.darkMode = !state.darkMode;
+        const phoneEl = $('app');
+        if (state.darkMode) {
+            phoneEl.classList.add('dark');
+        } else {
+            phoneEl.classList.remove('dark');
+        }
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+        showToast(state.darkMode ? '已切换到暗色主题（深灰磨砂）' : '已切换到亮色主题');
+        saveState();
+    });
+
+    $('menuPoke').addEventListener('click', function() {
+        showPokeSettings();
+        plusMenu.classList.remove('open');
+        plusBtn.classList.remove('open');
+    });
+
+    $('chatBackBtn').addEventListener('click', function() {
+        if (confirm('确定退出聊天吗？')) {
+            alert('已退出');
+        }
+    });
+
+    $('menuToggle').addEventListener('click', function() {
+        setAvatar(settingsAvatar, state.myAvatar);
+        settingsNameVal.textContent = state.myName || '用户';
+        settingsIdVal.textContent = state.myId || '';
+        toggleTop.className = 'toggle-switch' + (state.topChat ? ' on' : '');
+        toggleMute.className = 'toggle-switch' + (state.muteChat ? ' on' : '');
+        showPage('settings-page');
+    });
+
+    $('settingsBack').addEventListener('click', function() {
+        showPage('chat-page');
+    });
+
+    $('wordcardBack').addEventListener('click', function() {
+        closeWordcardModal();
+    });
+
+    wordcardPage.addEventListener('click', function(e) {
+        if (e.target === this) closeWordcardModal();
+    });
+
+    chatTopAvatar.addEventListener('dblclick', function() {
+        sendPokeMessage('me', 'them');
+    });
+    settingsAvatar.addEventListener('dblclick', function() {
+        sendPokeMessage('me', 'me');
+    });
+
+    $('avatarInputTheir').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            state.theirAvatar = ev.target.result;
+            setAvatar(chatTopAvatar, state.theirAvatar);
+            document.querySelectorAll('.chat-area .flex-box:not(.justify-end) .avatar-small').forEach(el => {
+                setAvatar(el, state.theirAvatar);
+            });
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+    });
+
+    $('avatarInputSettings').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            state.myAvatar = ev.target.result;
+            setAvatar(settingsAvatar, state.myAvatar);
+            document.querySelectorAll('.chat-area .flex-box.justify-end .avatar-small').forEach(el => {
+                setAvatar(el, state.myAvatar);
+            });
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+    });
+
+    $('settingsNameCard').addEventListener('click', function() {
+        showModal('修改名称', state.myName || '用户', 'edit', (val) => {
+            if (val.trim()) {
+                state.myName = val.trim();
+                settingsNameVal.textContent = state.myName;
+            }
+        });
+    });
+    $('settingsIdCard').addEventListener('click', function() {
+        showModal('修改ID', state.myId || '', 'edit', (val) => {
+            state.myId = val.trim();
+            settingsIdVal.textContent = state.myId;
+        });
+    });
+
+    $('idBadge').addEventListener('click', function() {
+        showModal('修改对方ID', state.theirId || '', 'edit', (val) => {
+            state.theirId = val.trim();
+            displayedTheirId.textContent = state.theirId;
+        });
+    });
+
+    toggleTop.addEventListener('click', function() {
+        state.topChat = !state.topChat;
+        this.className = 'toggle-switch' + (state.topChat ? ' on' : '');
+        updateTopBadge();
+    });
+    toggleMute.addEventListener('click', function() {
+        state.muteChat = !state.muteChat;
+        this.className = 'toggle-switch' + (state.muteChat ? ' on' : '');
+        updateTopBadge();
+    });
+
+    function updateTopBadge() {
+        const items = [];
+        if (state.topChat) items.push('📌 置顶');
+        if (state.muteChat) items.push('🔕 免打扰');
+        if (items.length) {
+            topBadgeWrap.style.display = 'flex';
+            topBadgeContent.textContent = items.join(' · ');
+        } else {
+            topBadgeWrap.style.display = 'none';
+        }
+    }
+
+    $('settingBg').addEventListener('click', function() {
+        const input = $('bgInput');
+        input.click();
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                state.bgImage = ev.target.result;
+                const chatPageEl = document.getElementById('chat-page');
+                chatPageEl.style.backgroundImage = `url(${state.bgImage})`;
+                chatPageEl.style.backgroundSize = 'cover';
+                chatPageEl.style.backgroundPosition = 'center';
+                chatArea.style.background = 'transparent';
+                updateSettingBackgrounds();
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        };
+    });
+
+    $('settingClear').addEventListener('click', function() {
+        showModal('确定删除本地聊天记录？', '', 'clear', null);
+    });
+
+    document.querySelectorAll('.wordcard-tools .tool-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            if (action === 'search') {
+                const input = $('wordcardSearch');
+                input.classList.toggle('show');
+                if (input.classList.contains('show')) {
+                    input.focus();
+                } else {
+                    input.value = '';
+                    renderWordcards('');
+                }
+            } else if (action === 'split') {
+                showGroupManager();
+            } else if (action === 'check') {
+                const dups = state.wordcards.filter((v, i, a) => a.indexOf(v) !== i);
+                if (dups.length > 0) {
+                    const unique = [...new Set(state.wordcards)];
+                    state.wordcards = unique;
+                    renderWordcards(wordcardSearch.value);
+                    showToast('已删除重复字卡');
+                } else {
+                    showModal('提示', '没有重复内容', 'tag', null);
+                }
+            } else if (action === 'select') {
+                if (!state.selectMode) {
+                    enterSelectMode();
+                } else {
+                    exitSelectMode();
+                }
+            } else if (action === 'upload') {
+                const input = $('uploadFileInput');
+                input.click();
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        try {
+                            const text = ev.target.result;
+                            const lines = text.split(/\r?\n/);
+                            const extracted = [];
+                            lines.forEach(line => {
+                                const chinese = line.match(/[\u4e00-\u9fa5]/g);
+                                if (chinese && chinese.length > 0) {
+                                    const word = chinese.join('');
+                                    extracted.push(word);
+                                }
+                            });
+                            if (extracted.length > 0) {
+                                addWordcardsBatch(extracted);
+                                showToast(`成功提取 ${extracted.length} 条字卡`);
+                            } else {
+                                alert('未在文件中找到中文字卡内容');
+                            }
+                        } catch (err) {
+                            alert('文件格式错误');
+                        }
+                    };
+                    reader.readAsText(file);
+                    input.value = '';
+                };
+            } else if (action === 'download') {
+                showModal('下载字卡', '', 'download', null);
+            }
+        });
+    });
+
+    $('addCardBig').addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-tag')) {
+            closeWordcardModal();
+            return;
+        }
+        showModal('批量添加回复', '每行一条，自动去重', 'batch', null);
+    });
+
+    $('wordcardSearch').addEventListener('input', function() {
+        renderWordcards(this.value);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.bubble') && !e.target.closest('.msg-actions')) {
+            hideAllMsgActions();
+        }
+    });
+
+    // 用户手势时恢复音频上下文（后台保活）
+    document.addEventListener('click', resumeAudioIfNeeded);
+    document.addEventListener('touchstart', resumeAudioIfNeeded, { passive: true });
+
+    async function initializeApp() {
+        try {
+            await openDB();
+            const hasSavedData = await loadState();
+
+            chatArea.innerHTML = '';
+
+            if (state.darkMode) {
+                $('app').classList.add('dark');
+            }
+
+            // 应用聊天时间显示状态
+            applyTimeVisibility();
+
+            if (hasSavedData) {
+                if (state.myAvatar) setAvatar(settingsAvatar, state.myAvatar);
+                if (state.theirAvatar) setAvatar(chatTopAvatar, state.theirAvatar);
+                if (state.theirId) displayedTheirId.textContent = state.theirId;
+                if (state.myId) settingsIdVal.textContent = state.myId;
+                if (state.myName) settingsNameVal.textContent = state.myName;
+
+                if (state.bgImage) {
+                    const chatPageEl = document.getElementById('chat-page');
+                    chatPageEl.style.backgroundImage = `url(${state.bgImage})`;
+                    chatPageEl.style.backgroundSize = 'cover';
+                    chatPageEl.style.backgroundPosition = 'center';
+                    chatArea.style.background = 'transparent';
+                    updateSettingBackgrounds();
+                }
+
+                toggleTop.className = 'toggle-switch' + (state.topChat ? ' on' : '');
+                toggleMute.className = 'toggle-switch' + (state.muteChat ? ' on' : '');
+                updateTopBadge();
+
+                if (state.chatHistory && state.chatHistory.length > 0) {
+                    state.chatHistory.forEach(msg => {
+                        addMessageToChat(msg, msg.from, msg.time);
+                    });
+                }
+
+                renderWordcards();
+            } else {
+                state.wordcards = [];
+                state.wordcardHidden = [];
+                renderWordcards();
+            }
+
+            applyBubbleStyle(state.bubbleCss || '');
+            applySizeStyle();
+            applyAvatarFrameStyle(state.avatarFrameCssThem, state.avatarFrameCssMe);
+
+            // 恢复后台保活
+            if (state.keepAlive) {
+                startKeepAlive();
+            }
+
+            showPage('chat-page');
+
+            if (state.hasUserSentMessage) {
+                startAutoReplyLoop();
+            }
+
+            setInterval(() => {
+                saveState();
+            }, 1000);
+
+            window.addEventListener('beforeunload', () => {
+                saveState();
+            });
+
+            console.log('应用已启动，数据库:', DB_NAME, '版本:', DB_VERSION);
+        } catch (error) {
+            console.error('初始化失败:', error);
+            alert('应用初始化失败，请检查浏览器是否支持 IndexedDB');
+        }
+    }
+
+    initializeApp();
+</script>
+</body>
+</html><script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="95f8160c-72f4-41e1-a1d7-cfbfa4db691a" data-app-host="app.netlify.com"></script>
